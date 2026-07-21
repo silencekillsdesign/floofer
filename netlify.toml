@@ -1,0 +1,5 @@
+# Nuxt 3 on Netlify — Nitro auto-targets the Netlify preset at build time,
+# emitting the static app to dist/ and the /api/* proxies as functions.
+[build]
+  command = "npm run build"
+  publish = "dist"
