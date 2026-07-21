@@ -53,17 +53,27 @@ function onMove(e: PointerEvent) {
   rawDy.value = e.clientY - startY.value;
   dy.value = rawDy.value * 0.4;
 }
-function onUp() {
+const TAP_SLOP = 8;
+
+function onUp(e?: PointerEvent) {
   if (!dragging.value) return;
   dragging.value = false;
   if (dx.value > THRESHOLD) fling("right");
   else if (dx.value < -THRESHOLD) fling("left");
   else {
+    const count = top.value?.photos.length ?? 0;
+    const moved = Math.max(Math.abs(dx.value), Math.abs(rawDy.value));
     // mostly-vertical flick → cycle photos (up = next, down = previous)
-    if (Math.abs(rawDy.value) > PHOTO_THRESHOLD && Math.abs(dx.value) < PHOTO_THRESHOLD && top.value) {
-      const count = top.value.photos.length;
+    if (Math.abs(rawDy.value) > PHOTO_THRESHOLD && Math.abs(dx.value) < PHOTO_THRESHOLD && count) {
       photoIdx.value =
         rawDy.value < 0 ? (photoIdx.value + 1) % count : (photoIdx.value - 1 + count) % count;
+    }
+    // tap → Tinder-style zones: left 40% previous, right 60% next
+    else if (moved < TAP_SLOP && count > 1 && e) {
+      const rect = (e.currentTarget as HTMLElement).getBoundingClientRect();
+      const frac = (startX.value - rect.left) / rect.width;
+      photoIdx.value =
+        frac < 0.4 ? (photoIdx.value - 1 + count) % count : (photoIdx.value + 1) % count;
     }
     dx.value = 0;
     dy.value = 0;
@@ -114,7 +124,7 @@ onUnmounted(() => window.removeEventListener("keydown", onKey));
       :class="dog.id === top?.id ? 'touch-none cursor-grab active:cursor-grabbing z-10' : ''"
       @pointerdown="dog.id === top?.id && onDown($event)"
       @pointermove="dog.id === top?.id && onMove($event)"
-      @pointerup="dog.id === top?.id && onUp()"
+      @pointerup="dog.id === top?.id && onUp($event)"
       @pointercancel="dog.id === top?.id && onUp()"
     >
       <DogPhoto

@@ -20,9 +20,7 @@ const form = reactive({
   size: "medium" as Dog["size"],
   weightLbs: 40,
   // 2 — media
-  photo1: `https://placedog.net/500/640?id=${Math.floor(Math.random() * 200) + 1}`,
-  photo2: "",
-  photo3: "",
+  photos: [`https://placedog.net/500/640?id=${Math.floor(Math.random() * 200) + 1}`] as string[],
   videoUrl: "",
   // 3 — compatibility
   goodWithDogs: "yes" as Dog["goodWithDogs"],
@@ -61,10 +59,29 @@ const TRAIT_META: { key: keyof TraitPentagon; label: string; low: string; high: 
 
 const errors = ref<string[]>([]);
 
+/* video: capture (mobile camera) or choose a file — kept as an object URL for
+   the session; a pasted URL persists like any listing field */
+const videoEl = ref<HTMLInputElement | null>(null);
+const videoFileName = ref("");
+function onVideoPick(e: Event) {
+  const el = e.target as HTMLInputElement;
+  const f = el.files?.[0];
+  if (f) {
+    form.videoUrl = URL.createObjectURL(f);
+    videoFileName.value = f.name;
+  }
+  el.value = "";
+}
+function clearVideo() {
+  form.videoUrl = "";
+  videoFileName.value = "";
+}
+
 function submit() {
   errors.value = [];
   if (!form.name.trim()) errors.value.push("Name is required.");
   if (!form.breed.trim()) errors.value.push("Primary breed is required.");
+  if (!form.photos.length) errors.value.push("At least one photo is required — it's the single most important asset.");
   if (!form.tagline.trim()) errors.value.push("A short tagline is required.");
   if (!form.bio.trim()) errors.value.push("The personality bio is required.");
   if (form.atRisk && !form.riskReason.trim()) errors.value.push("At-risk listings need a reason (adopters see it).");
@@ -86,7 +103,7 @@ function submit() {
     sex: form.sex,
     size: form.size,
     weightLbs: form.weightLbs,
-    photos: [form.photo1, form.photo2, form.photo3].filter((p) => p.trim()),
+    photos: form.photos.slice(0, 8),
     videoUrl: form.videoUrl.trim() || undefined,
     goodWithDogs: form.goodWithDogs,
     goodWithCats: form.goodWithCats,
@@ -177,16 +194,31 @@ const segCls = (active: boolean) =>
       <!-- 2 · Media -->
       <section class="min-w-0 p-5 bg-card rounded-3xl shadow-card border border-line space-y-3">
         <h2 class="font-display text-lg font-semibold">2 · Photos & video</h2>
-        <p class="text-xs text-ink-soft">A bright, eye-level headshot is the single most important asset. Demo build takes URLs; production would upload.</p>
-        <div><label :class="labelCls" for="f-p1">Primary photo URL *</label><input id="f-p1" v-model="form.photo1" :class="inputCls" /></div>
-        <div class="grid grid-cols-1 sm:grid-cols-2 gap-3">
-          <div><label :class="labelCls" for="f-p2">Gallery photo 2</label><input id="f-p2" v-model="form.photo2" :class="inputCls" placeholder="Optional" /></div>
-          <div><label :class="labelCls" for="f-p3">Gallery photo 3</label><input id="f-p3" v-model="form.photo3" :class="inputCls" placeholder="Optional" /></div>
+        <p class="text-xs text-ink-soft">A bright, eye-level headshot is the single most important asset. Add up to 8 photos.</p>
+
+        <PhotoUploader v-model="form.photos" :max="8" />
+
+        <div>
+          <span :class="labelCls">Video (30–60s clip)</span>
+          <div v-if="form.videoUrl" class="flex items-center justify-between gap-3 p-3 rounded-xl bg-paper border border-line">
+            <p class="text-sm font-semibold truncate">🎥 {{ videoFileName || form.videoUrl }}</p>
+            <button type="button" class="text-xs font-semibold text-risk hover:underline shrink-0" @click="clearVideo">Remove</button>
+          </div>
+          <div v-else class="flex flex-wrap gap-2">
+            <button
+              type="button"
+              class="px-4 py-2 rounded-full border border-line bg-card text-xs font-semibold text-ink-soft hover:border-ink-faint"
+              @click="videoEl?.click()"
+            >🎥 Record or choose video</button>
+            <input
+              v-model="form.videoUrl"
+              :class="inputCls + ' flex-1 min-w-[180px]'"
+              placeholder="…or paste a video URL"
+            />
+          </div>
+          <p class="text-xs text-ink-faint mt-1">Show them playing, leash walking, or meeting people.</p>
         </div>
-        <div><label :class="labelCls" for="f-video">Video URL (30–60s clip)</label><input id="f-video" v-model="form.videoUrl" :class="inputCls" placeholder="Optional — playing, leash walking, meeting people" /></div>
-        <div v-if="form.photo1" class="w-24 h-24 rounded-2xl overflow-hidden border border-line">
-          <DogPhoto :src="form.photo1" alt="Primary photo preview" />
-        </div>
+        <input ref="videoEl" type="file" accept="video/*" capture="environment" class="hidden" @change="onVideoPick" />
       </section>
 
       <!-- 3 · Compatibility -->

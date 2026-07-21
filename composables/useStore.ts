@@ -85,18 +85,24 @@ export function useStore() {
     watch(
       [liked, passed, adoptedOverrides, applied, profile, customDogs, dataSource],
       () => {
-        localStorage.setItem(
-          LS_KEY,
-          JSON.stringify({
-            liked: liked.value,
-            passed: passed.value,
-            adoptedOverrides: adoptedOverrides.value,
-            applied: applied.value,
-            profile: profile.value,
-            customDogs: customDogs.value,
-            dataSource: dataSource.value,
-          } satisfies Persisted),
-        );
+        try {
+          localStorage.setItem(
+            LS_KEY,
+            JSON.stringify({
+              liked: liked.value,
+              passed: passed.value,
+              adoptedOverrides: adoptedOverrides.value,
+              applied: applied.value,
+              profile: profile.value,
+              customDogs: customDogs.value,
+              dataSource: dataSource.value,
+            } satisfies Persisted),
+          );
+        } catch (e) {
+          // photo-heavy listings can exceed the localStorage quota — keep the
+          // app running; state just won't survive a reload
+          console.warn("[floofer] persist failed (storage quota?)", e);
+        }
       },
       { deep: true },
     );
