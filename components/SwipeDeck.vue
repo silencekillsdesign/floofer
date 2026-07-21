@@ -36,7 +36,7 @@ const cardStyle = computed(() => {
 });
 
 const likeOpacity = computed(() => Math.min(1, Math.max(0, dx.value / THRESHOLD)));
-const nopeOpacity = computed(() => Math.min(1, Math.max(0, -dx.value / THRESHOLD)));
+const noOpacity = computed(() => Math.min(1, Math.max(0, -dx.value / THRESHOLD)));
 
 function onDown(e: PointerEvent) {
   if (leaving.value || !top.value) return;
@@ -175,8 +175,8 @@ onUnmounted(() => window.removeEventListener("keydown", onKey));
         >LIKE</div>
         <div
           class="absolute top-24 right-6 px-4 py-1.5 border-4 border-brand text-brand font-extrabold text-3xl rounded-lg rotate-12 tracking-widest bg-black/30"
-          :style="{ opacity: nopeOpacity }"
-        >NOPE</div>
+          :style="{ opacity: noOpacity }"
+        >Good Luck</div>
       </template>
 
       <!-- bottom gradient so the action bar reads on any photo -->

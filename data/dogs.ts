@@ -1,6 +1,6 @@
 import type { Dog } from "~/types";
 
-const photo = (id: number) => `https://placedog.net/500/640?id=${id}`;
+/* Demo photos: breed-matched stable URLs from the free Dog CEO API (dog.ceo). */
 
 /* Sensible listing defaults — each dog overrides what differs. */
 const listing = (d: Omit<Dog, keyof typeof DEFAULTS> & Partial<typeof DEFAULTS>): Dog =>
@@ -26,7 +26,7 @@ const DEFAULTS = {
 export const DOGS: Dog[] = [
   listing({
     id: "scout", name: "Scout", breed: "Border Collie", age: 3, sex: "F", size: "medium", weightLbs: 42,
-    photos: [photo(12), photo(34), photo(56)],
+    photos: ["https://images.dog.ceo/breeds/collie-border/n02106166_3019.jpg", "https://images.dog.ceo/breeds/collie-border/n02106166_401.jpg", "https://images.dog.ceo/breeds/collie-border/n02106166_26.jpg"],
     tagline: "Will out-hike you. Politely.",
     bio: "Scout is brilliant, ball-obsessed, and needs a human with real time and trail miles to share. Knows sit, stay, spin, and 'go find dad.'",
     quirks: "Herds the vacuum. Collects tennis balls in a pile she guards from no one.",
@@ -40,7 +40,7 @@ export const DOGS: Dog[] = [
   }),
   listing({
     id: "bruno", name: "Bruno", breed: "Rottweiler Mix", secondaryBreed: "Mastiff (guess)", age: 5, sex: "M", size: "large", weightLbs: 88,
-    photos: [photo(77), photo(41), photo(93)],
+    photos: ["https://images.dog.ceo/breeds/rottweiler/n02106550_11323.jpg", "https://images.dog.ceo/breeds/rottweiler/n02106550_982.jpg", "https://images.dog.ceo/breeds/rottweiler/n02106550_5184.jpg"],
     tagline: "90 lbs of misunderstood softie.",
     bio: "Bruno failed his shelter eval for leash reactivity, which put him on the at-risk list — but in a quiet foster he's been a gentle, devoted couch companion.",
     background: "Behavior flag from a chaotic kennel evaluation; thriving in a calm foster since.",
@@ -54,7 +54,7 @@ export const DOGS: Dog[] = [
   }),
   listing({
     id: "waffles", name: "Waffles", breed: "Corgi Mix", age: 2, sex: "M", size: "small", weightLbs: 26,
-    photos: [photo(101), photo(15), photo(63)],
+    photos: ["https://images.dog.ceo/breeds/corgi-cardigan/n02113186_8812.jpg", "https://images.dog.ceo/breeds/corgi-cardigan/n02113186_2433.jpg", "https://images.dog.ceo/breeds/corgi-cardigan/n02113186_1030.jpg"],
     tagline: "Short king. Long heart.",
     bio: "Waffles believes every room improves with a corgi in it. Loves kids, cats, delivery drivers, and dramatic flops onto cool tile.",
     quirks: "Sploots on any cold surface. Barks once — exactly once — at the doorbell.",
@@ -67,7 +67,7 @@ export const DOGS: Dog[] = [
   }),
   listing({
     id: "duchess", name: "Duchess", breed: "Great Pyrenees", age: 6, sex: "F", size: "large", weightLbs: 96,
-    photos: [photo(88), photo(29), photo(120)],
+    photos: ["https://images.dog.ceo/breeds/pyrenees/n02111500_6289.jpg", "https://images.dog.ceo/breeds/pyrenees/n02111500_2572.jpg", "https://images.dog.ceo/breeds/pyrenees/n02111500_7398.jpg"],
     tagline: "Retired livestock guardian seeks yard.",
     bio: "Duchess spent six years guarding goats and has earned a calm retirement with room to patrol. Serene, kid-tolerant, nocturnal-ish.",
     background: "Her farm downsized; big white dogs move slowly in shelters.",
@@ -81,7 +81,7 @@ export const DOGS: Dog[] = [
   }),
   listing({
     id: "meatball", name: "Meatball", breed: "Pug Mix", age: 8, sex: "M", size: "small", weightLbs: 22,
-    photos: [photo(140), photo(52), photo(9)],
+    photos: ["https://images.dog.ceo/breeds/pug/n02110958_13276.jpg", "https://images.dog.ceo/breeds/pug/n02110958_16447.jpg", "https://images.dog.ceo/breeds/pug/n02110958_14654.jpg"],
     tagline: "Snores in italics.",
     bio: "Meatball's owner passed away and he's riding out his golden years at a retirement community for pets. Ideal day: breakfast, nap, snack, nap, you.",
     quirks: "Snores loud enough to require a white-noise machine. Worth it.",
@@ -95,7 +95,7 @@ export const DOGS: Dog[] = [
   }),
   listing({
     id: "ziggy", name: "Ziggy", breed: "Australian Shepherd", age: 1, sex: "M", size: "medium", weightLbs: 38,
-    photos: [photo(67), photo(112), photo(23)],
+    photos: ["https://images.dog.ceo/breeds/australian-shepherd/sadie.jpg", "https://images.dog.ceo/breeds/australian-shepherd/pepper2.jpg", "https://images.dog.ceo/breeds/australian-shepherd/leroy.jpg"],
     tagline: "One blue eye, zero chill.",
     bio: "Teenage aussie with two different colored eyes and puppy brain still loading. Herds children gently.",
     quirks: "Carries a stuffed lamb everywhere. The lamb comes with him.",
@@ -109,7 +109,7 @@ export const DOGS: Dog[] = [
   }),
   listing({
     id: "pearl", name: "Pearl", breed: "Pit Bull Terrier", age: 4, sex: "F", size: "medium", weightLbs: 52,
-    photos: [photo(133), photo(48), photo(71)],
+    photos: ["https://images.dog.ceo/breeds/pitbull/pitbull_dog.jpg", "https://images.dog.ceo/breeds/pitbull/louie.jpg", "https://images.dog.ceo/breeds/pitbull/20190710_143021.jpg"],
     tagline: "Professional smiler. Amateur lap dog.",
     bio: "Pearl is the shelter staff's favorite: wiggly, gentle, obsessed with tennis balls and toddlers.",
     background: "Passed over for 200+ days — pitties wait 3x longer for no reason anyone can name.",
@@ -121,7 +121,7 @@ export const DOGS: Dog[] = [
   }),
   listing({
     id: "noodle", name: "Noodle", breed: "Dachshund", age: 3, sex: "F", size: "small", weightLbs: 14,
-    photos: [photo(155), photo(84), photo(37)],
+    photos: ["https://images.dog.ceo/breeds/dachshund/foxhound-53951_640.jpg", "https://images.dog.ceo/breeds/dachshund/dog-1018408_640.jpg", "https://images.dog.ceo/breeds/dachshund/daschund-shorthair.jpg"],
     tagline: "Longer than expected. Stubborn as advertised.",
     bio: "Noodle is a heat-seeking blanket missile with opinions.",
     quirks: "Burrows under every blanket. Check your laundry pile before sitting.",
@@ -136,7 +136,7 @@ export const DOGS: Dog[] = [
   }),
   listing({
     id: "gus", name: "Gus", breed: "Golden Retriever", age: 3, sex: "M", size: "large", weightLbs: 71,
-    photos: [photo(2), photo(118), photo(59)],
+    photos: ["https://images.dog.ceo/breeds/retriever-golden/Mori_2.jpg", "https://images.dog.ceo/breeds/retriever-golden/n02099601_7588.jpg", "https://images.dog.ceo/breeds/retriever-golden/n02099601_3666.jpg"],
     tagline: "Everyone's best friend. Yes, everyone.",
     bio: "Gus has never had a bad day and refuses to let you have one either.",
     background: "Surrendered due to landlord rules, not behavior.",
@@ -150,7 +150,7 @@ export const DOGS: Dog[] = [
   }),
   listing({
     id: "olive", name: "Olive", breed: "Greyhound", age: 5, sex: "F", size: "large", weightLbs: 58,
-    photos: [photo(96), photo(21), photo(147)],
+    photos: ["https://images.dog.ceo/breeds/greyhound-indian/rampur-greyhound.jpg", "https://images.dog.ceo/breeds/whippet/n02091134_7310.jpg", "https://images.dog.ceo/breeds/whippet/n02091134_835.jpg"],
     tagline: "45 mph couch potato.",
     bio: "Retired racer. Olive sprints for 90 seconds a day and sleeps the other 23 hours.",
     background: "Track retiree — narrow adoption window before transport south.",
@@ -164,7 +164,7 @@ export const DOGS: Dog[] = [
   }),
   listing({
     id: "tank", name: "Tank", breed: "English Bulldog", age: 6, sex: "M", size: "medium", weightLbs: 54,
-    photos: [photo(108), photo(64), photo(31)],
+    photos: ["https://images.dog.ceo/breeds/bulldog-english/mami.jpg", "https://images.dog.ceo/breeds/bulldog-english/bunz.jpg", "https://images.dog.ceo/breeds/bulldog-english/jager-1.jpg"],
     tagline: "Built like a coffee table. Loves like a labrador.",
     bio: "Tank's family had a baby with allergies. He's a low-energy, high-charisma gentleman.",
     medicalNotes: "Seasonal skin allergies managed with a weekly medicated shampoo.",
@@ -178,7 +178,7 @@ export const DOGS: Dog[] = [
   }),
   listing({
     id: "birdie", name: "Birdie", breed: "Beagle", age: 9, sex: "F", size: "small", weightLbs: 24,
-    photos: [photo(125), photo(43), photo(80)],
+    photos: ["https://images.dog.ceo/breeds/beagle/n02088364_15877.jpg", "https://images.dog.ceo/breeds/beagle/n02088364_2415.jpg", "https://images.dog.ceo/breeds/beagle/n02088364_14220.jpg"],
     tagline: "Senior sniffer, expert napper.",
     bio: "Birdie did nine loyal years with one family before they lost their housing. She asks for very little: a sunny window, slow sniffy walks, you.",
     background: "Seniors are euthanized first when shelters fill.",
@@ -192,7 +192,7 @@ export const DOGS: Dog[] = [
   }),
   listing({
     id: "koda", name: "Koda", breed: "Husky", age: 2, sex: "M", size: "large", weightLbs: 55,
-    photos: [photo(160), photo(7), photo(90)],
+    photos: ["https://images.dog.ceo/breeds/husky/n02110185_14650.jpg", "https://images.dog.ceo/breeds/husky/n02110185_3540.jpg", "https://images.dog.ceo/breeds/husky/n02110185_8162.jpg"],
     tagline: "Talks back. Worth it.",
     bio: "Koda was an impulse pandemic puppy who outgrew his apartment. Dramatic, vocal, needs serious exercise.",
     quirks: "Argues about bedtime. Howls along with sirens, off-key.",
@@ -206,7 +206,7 @@ export const DOGS: Dog[] = [
   }),
   listing({
     id: "poppy", name: "Poppy", breed: "Jack Russell Terrier", age: 2, sex: "F", size: "small", weightLbs: 11,
-    photos: [photo(50), photo(136), photo(18)],
+    photos: ["https://images.dog.ceo/breeds/terrier-russell/IMG_0236.jpg", "https://images.dog.ceo/breeds/terrier-russell/IMG_7714.jpg", "https://images.dog.ceo/breeds/terrier-russell/IMG_7752.jpg"],
     tagline: "Nine pounds. CEO energy.",
     bio: "Poppy is perpetual motion in a small package with an impressive vertical leap.",
     idealHome: "A human who runs, hikes, or at minimum owns a very good ball thrower.",
@@ -219,7 +219,7 @@ export const DOGS: Dog[] = [
   }),
   listing({
     id: "moose", name: "Moose", breed: "Bernese Mountain Dog", age: 4, sex: "M", size: "large", weightLbs: 102,
-    photos: [photo(73), photo(104), photo(27)],
+    photos: ["https://images.dog.ceo/breeds/mountain-bernese/n02107683_6781.jpg", "https://images.dog.ceo/breeds/mountain-bernese/n02107683_6752.jpg", "https://images.dog.ceo/breeds/mountain-bernese/n02107683_5848.jpg"],
     tagline: "Part dog, part weighted blanket.",
     bio: "Moose was adopted last week by a family with a hobby farm — kept here so you can see what a success story looks like. 🎉",
     goodWithCats: "yes",
@@ -230,7 +230,7 @@ export const DOGS: Dog[] = [
   }),
   listing({
     id: "luna", name: "Luna", breed: "German Shepherd", age: 7, sex: "F", size: "large", weightLbs: 68,
-    photos: [photo(85), photo(11), photo(129)],
+    photos: ["https://images.dog.ceo/breeds/german-shepherd/n02106662_24774.jpg", "https://images.dog.ceo/breeds/german-shepherd/n02106662_620.jpg", "https://images.dog.ceo/breeds/german-shepherd/n02106662_8870.jpg"],
     tagline: "Retired working girl. Still clocks in emotionally.",
     bio: "Luna spent her career as a facility dog. Adopted by a retired teacher in June — success story #2. 🎉",
     medicalNotes: "Stiff hips — daily joint supplement.",

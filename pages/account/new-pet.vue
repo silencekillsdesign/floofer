@@ -20,7 +20,7 @@ const form = reactive({
   size: "medium" as Dog["size"],
   weightLbs: 40,
   // 2 — media
-  photos: [`https://placedog.net/500/640?id=${Math.floor(Math.random() * 200) + 1}`] as string[],
+  photos: [] as string[],
   videoUrl: "",
   // 3 — compatibility
   goodWithDogs: "yes" as Dog["goodWithDogs"],
