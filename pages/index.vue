@@ -3,6 +3,7 @@ import type { Dog } from "~/types";
 
 const { dogs, liked, passed, matchPct, like, pass, unswipe } = useStore();
 const filters = useFilters();
+const router = useRouter();
 const history = ref<string[]>([]);
 const deckRef = ref<InstanceType<any> | null>(null);
 
@@ -20,7 +21,13 @@ const deck = computed<Dog[]>(() => {
 
 function onSwiped(id: string, dir: "left" | "right") {
   history.value.push(id);
-  dir === "right" ? like(id) : pass(id);
+  if (dir === "right") {
+    // it's a match — go meet them; the bio's CTA is already at "Rescue"
+    like(id);
+    router.push(`/pet/${id}`);
+  } else {
+    pass(id);
+  }
 }
 
 function rewind() {
