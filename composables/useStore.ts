@@ -27,6 +27,8 @@ const defaultProfile = (): Profile => ({
   city: "Chicago, IL",
   traits: { energy: 6, space: 4, social: 7, independence: 6, training: 5 },
   payment: { brand: "Visa", last4: "4242", exp: "08/28" },
+  homePhotos: [],
+  petPhotos: [],
 });
 
 /** Single reactive store, hydrated from localStorage once on the client. */

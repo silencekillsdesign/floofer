@@ -3,11 +3,19 @@
    picking. Images are downscaled to ~720px JPEG data-URLs so demo listings
    can persist in localStorage. First photo = primary headshot. */
 
-const props = defineProps<{ modelValue: string[]; max?: number }>();
+const props = defineProps<{
+  modelValue: string[];
+  max?: number;
+  /** Listings have a primary headshot; plain galleries don't. */
+  showPrimary?: boolean;
+}>();
 const emit = defineEmits<{ "update:modelValue": [v: string[]] }>();
 
 const max = computed(() => props.max ?? 8);
-const full = computed(() => props.modelValue.length >= max.value);
+const usePrimary = computed(() => props.showPrimary !== false);
+/** Tolerate a caller passing undefined (e.g. a profile saved before this field existed). */
+const photos = computed(() => props.modelValue ?? []);
+const full = computed(() => photos.value.length >= max.value);
 const dragging = ref(false);
 const busy = ref(false);
 const cameraEl = ref<HTMLInputElement | null>(null);
@@ -41,7 +49,7 @@ async function addFiles(list: FileList | null | undefined) {
   const files = [...list].filter((f) => f.type.startsWith("image/"));
   if (!files.length) return;
   busy.value = true;
-  const next = [...props.modelValue];
+  const next = [...photos.value];
   for (const f of files.slice(0, max.value - next.length)) {
     try {
       next.push(await compress(f));
@@ -61,11 +69,11 @@ function onPick(e: Event) {
   el.value = ""; // allow re-picking the same file
 }
 function removeAt(i: number) {
-  emit("update:modelValue", props.modelValue.filter((_, x) => x !== i));
+  emit("update:modelValue", photos.value.filter((_, x) => x !== i));
 }
 function makePrimary(i: number) {
-  if (i === 0) return;
-  const next = [...props.modelValue];
+  if (i === 0 || !usePrimary.value) return;
+  const next = [...photos.value];
   const [picked] = next.splice(i, 1);
   next.unshift(picked);
   emit("update:modelValue", next);
@@ -75,19 +83,20 @@ function makePrimary(i: number) {
 <template>
   <div>
     <!-- thumbnails -->
-    <div v-if="modelValue.length" class="grid grid-cols-4 gap-2 mb-3">
+    <div v-if="photos.length" class="grid grid-cols-4 gap-2 mb-3">
       <div
-        v-for="(p, i) in modelValue"
+        v-for="(p, i) in photos"
         :key="`${i}-${p.slice(-24)}`"
-        class="relative aspect-square rounded-xl overflow-hidden border border-line cursor-pointer"
-        :title="i === 0 ? 'Primary headshot' : 'Tap to make primary'"
-        role="button"
-        :aria-label="i === 0 ? `Photo ${i + 1} (primary)` : `Make photo ${i + 1} the primary headshot`"
+        class="relative aspect-square rounded-xl overflow-hidden border border-line"
+        :class="usePrimary && 'cursor-pointer'"
+        :title="usePrimary ? (i === 0 ? 'Primary headshot' : 'Tap to make primary') : undefined"
+        :role="usePrimary ? 'button' : undefined"
+        :aria-label="usePrimary ? (i === 0 ? `Photo ${i + 1} (primary)` : `Make photo ${i + 1} the primary headshot`) : `Photo ${i + 1}`"
         @click="makePrimary(i)"
       >
         <img :src="p" :alt="`Photo ${i + 1}`" class="w-full h-full object-cover" draggable="false" />
         <span
-          v-if="i === 0"
+          v-if="usePrimary && i === 0"
           class="absolute bottom-1 left-1 px-1.5 py-0.5 rounded-full bg-brand text-white text-[9px] font-bold"
         >Primary</span>
         <button
@@ -112,7 +121,7 @@ function makePrimary(i: number) {
         {{ busy ? "Processing photos…" : full ? "Gallery full" : "Drag & drop photos here" }}
       </p>
       <p class="text-xs text-ink-faint mt-0.5">
-        {{ modelValue.length }}/{{ max }} · tap a thumbnail to make it the primary headshot
+        {{ photos.length }}/{{ max }}<template v-if="usePrimary"> · tap a thumbnail to make it the primary headshot</template>
       </p>
       <div class="flex flex-wrap justify-center gap-2 mt-3">
         <button

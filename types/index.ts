@@ -73,6 +73,10 @@ export interface Profile {
   city: string;
   traits: TraitPentagon;
   payment: { brand: string; last4: string; exp: string } | null;
+  /** Shown to shelters during a home check. */
+  homePhotos: string[];
+  /** Pets already living in the home — used for compatibility review. */
+  petPhotos: string[];
 }
 
 export interface Filters {

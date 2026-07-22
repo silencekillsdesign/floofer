@@ -289,11 +289,15 @@ onMounted(() => {
       <!-- ==== Adopter: photo gallery placeholder ==== -->
       <section v-if="profile.userType === 'adopter'" class="min-w-0 p-5 bg-card rounded-3xl shadow-card border border-line">
         <h2 class="font-display text-lg font-semibold mb-1">Home photos</h2>
-        <p class="text-xs text-ink-soft mb-3">Shelters review these during home checks.</p>
-        <div class="grid grid-cols-3 gap-2">
-          <div v-for="i in 5" :key="i" class="aspect-square rounded-xl bg-paper-warm grid place-items-center text-2xl">🏡</div>
-          <button class="aspect-square rounded-xl border-2 border-dashed border-line grid place-items-center text-2xl text-ink-faint hover:border-brand hover:text-brand">+</button>
-        </div>
+        <p class="text-xs text-ink-soft mb-3">Shelters review these during home checks — yard, fencing, and where the dog would sleep.</p>
+        <PhotoUploader v-model="profile.homePhotos" :max="6" :show-primary="false" />
+      </section>
+
+      <!-- ==== Adopter: photos of pets already in the home ==== -->
+      <section v-if="profile.userType === 'adopter'" class="min-w-0 p-5 bg-card rounded-3xl shadow-card border border-line">
+        <h2 class="font-display text-lg font-semibold mb-1">Pet photos</h2>
+        <p class="text-xs text-ink-soft mb-3">Pets already living with you. Rescues check these when assessing whether a dog will get along with your crew.</p>
+        <PhotoUploader v-model="profile.petPhotos" :max="6" :show-primary="false" />
       </section>
     </div>
   </div>
