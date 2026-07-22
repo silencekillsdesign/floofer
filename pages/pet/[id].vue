@@ -251,8 +251,15 @@ const compatTags = computed(() => {
           {{ matchPct(dog) }}% match
         </span>
       </div>
-      <p class="text-xs text-ink-soft mb-2">{{ dog.name }}'s needs vs. your living conditions — the closer the shapes, the better the fit. Tune yours on the <NuxtLink to="/account" class="text-brand font-semibold underline">account page</NuxtLink>.</p>
+      <p class="text-xs text-ink-soft mb-2">{{ dog.name }}'s needs vs. your living conditions — the closer the shapes, the better the fit.</p>
       <PentagonChart :pet="dog.traits" :user="profile.traits" :size="320" />
+      <NuxtLink
+        to="/account?edit=bio"
+        class="mt-4 w-full flex items-center justify-center gap-2 py-3 rounded-full bg-paper-warm text-sm font-semibold hover:bg-line transition-colors"
+      >
+        <svg viewBox="0 0 24 24" class="w-4 h-4 text-brand" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round"><path d="M12 20h9M16.5 3.5a2.1 2.1 0 0 1 3 3L7 19l-4 1 1-4z"/></svg>
+        Edit bio
+      </NuxtLink>
     </section>
 
     <!-- source -->

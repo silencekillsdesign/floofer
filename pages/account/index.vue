@@ -45,6 +45,29 @@ function fakeSave() {
   saved.value = true;
   setTimeout(() => (saved.value = false), 1800);
 }
+
+/* Arriving from a pet's "Edit bio" button: focus the living-conditions card. */
+const route = useRoute();
+const bioSaved = ref(false);
+const highlightBio = ref(false);
+
+function saveBio() {
+  bioSaved.value = true;
+  highlightBio.value = false;
+}
+
+onMounted(() => {
+  if (route.query.edit !== "bio") return;
+  // let the router finish its own scroll-to-top before we scroll to the card
+  setTimeout(() => {
+    document.getElementById("living-conditions")?.scrollIntoView({
+      behavior: "smooth",
+      block: "center",
+    });
+    highlightBio.value = true;
+    setTimeout(() => (highlightBio.value = false), 2600);
+  }, 250);
+});
 </script>
 
 <template>
@@ -143,7 +166,12 @@ function fakeSave() {
       </section>
 
       <!-- ==== Adopter: living conditions ==== -->
-      <section v-if="profile.userType === 'adopter'" class="min-w-0 p-5 bg-card rounded-3xl shadow-card border border-line md:col-span-2">
+      <section
+        v-if="profile.userType === 'adopter'"
+        id="living-conditions"
+        class="min-w-0 p-5 bg-card rounded-3xl shadow-card border md:col-span-2 transition-all duration-500 scroll-mt-20"
+        :class="highlightBio ? 'border-brand ring-[3px] ring-brand/25' : 'border-line'"
+      >
         <h2 class="font-display text-lg font-semibold mb-1">Your living conditions</h2>
         <p class="text-xs text-ink-soft mb-4">These five sliders are your side of the pentagon — every match % in the app updates live as you move them.</p>
         <div class="grid grid-cols-1 md:grid-cols-[1fr,320px] gap-6 items-center">
@@ -160,6 +188,21 @@ function fakeSave() {
             <PentagonChart :pet="profile.traits" :user="null" :size="300" :show-legend="false" />
           </div>
         </div>
+
+        <!-- save, then offer the way back to matches -->
+        <div class="flex flex-col sm:flex-row gap-2.5 mt-5 pt-4 border-t border-line/60">
+          <button
+            class="px-5 py-2.5 rounded-full text-sm font-semibold transition-colors"
+            :class="bioSaved ? 'bg-safe-soft text-safe border border-safe/30' : 'bg-brand text-white hover:bg-brand-deep'"
+            @click="saveBio"
+          >{{ bioSaved ? "Saved ✓" : "Save bio" }}</button>
+          <NuxtLink
+            v-if="bioSaved"
+            to="/matches"
+            class="px-5 py-2.5 rounded-full bg-paper-warm text-sm font-semibold text-center hover:bg-line transition-colors"
+          >← Back to matches</NuxtLink>
+        </div>
+        <p v-if="bioSaved" class="text-xs text-ink-soft mt-2">Bio saved — every match % has been recalculated.</p>
       </section>
 
       <!-- ==== Org types: managed pets ==== -->
