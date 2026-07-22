@@ -78,7 +78,17 @@ export interface Profile {
 export interface Filters {
   breed: string;
   size: "all" | "small" | "medium" | "large";
+  sex: "all" | "M" | "F";
+  /** 15 means "15+" — no upper cap. */
   maxAge: number;
   maxMiles: number;
   minMatch: number;
+  /** "high" = at-risk only. */
+  urgency: "all" | "high";
+  goodWith: ("dogs" | "cats" | "kids")[];
+  houseTrained: boolean;
+  fixed: boolean;
+  vaccinated: boolean;
+  /** empty = all sources. */
+  sources: SourceType[];
 }

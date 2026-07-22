@@ -200,9 +200,16 @@ export function milesFrom(d: Dog): number {
 export const defaultFilters = (): Filters => ({
   breed: "all",
   size: "all",
-  maxAge: 12,
+  sex: "all",
+  maxAge: 15, // 15 = "15+", no cap
   maxMiles: 50,
   minMatch: 0,
+  urgency: "all",
+  goodWith: [],
+  houseTrained: false,
+  fixed: false,
+  vaccinated: false,
+  sources: [],
 });
 
 export function useFilters() {
@@ -210,12 +217,22 @@ export function useFilters() {
 }
 
 export function applyFilters(list: Dog[], f: Filters, matchPct: (d: Dog) => number): Dog[] {
-  return list.filter(
-    (d) =>
-      (f.breed === "all" || d.breed === f.breed) &&
-      (f.size === "all" || d.size === f.size) &&
-      d.age <= f.maxAge &&
-      milesFrom(d) <= f.maxMiles &&
-      matchPct(d) >= f.minMatch,
-  );
+  return list.filter((d) => {
+    if (f.breed !== "all" && d.breed !== f.breed) return false;
+    if (f.size !== "all" && d.size !== f.size) return false;
+    if (f.sex !== "all" && d.sex !== f.sex) return false;
+    if (f.maxAge < 15 && d.age > f.maxAge) return false; // 15 = no cap
+    if (milesFrom(d) > f.maxMiles) return false;
+    if (matchPct(d) < f.minMatch) return false;
+    if (f.urgency === "high" && d.risk !== "high") return false;
+    // "good with" — exclude only explicit incompatibility
+    if (f.goodWith.includes("dogs") && d.goodWithDogs === "no") return false;
+    if (f.goodWith.includes("cats") && d.goodWithCats === "no") return false;
+    if (f.goodWith.includes("kids") && d.goodWithKids === "no") return false;
+    if (f.houseTrained && d.houseTrained === "no") return false;
+    if (f.fixed && d.spayNeuter === "no") return false;
+    if (f.vaccinated && !d.vaccinated) return false;
+    if (f.sources.length && !f.sources.includes(d.source.type)) return false;
+    return true;
+  });
 }

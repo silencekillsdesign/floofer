@@ -243,6 +243,26 @@ export const DOGS: Dog[] = [
 
 export const BREEDS = [...new Set(DOGS.map((d) => d.breed))].sort();
 
+/* Canonical breed list for the filter. Merged with breeds present in the live
+   dataset at runtime, so "Rottweiler Mix" etc. also surface. */
+export const DOG_BREEDS = [
+  "Affenpinscher", "Afghan Hound", "Airedale Terrier", "Akita", "Alaskan Malamute",
+  "American Bulldog", "American Staffordshire Terrier", "Australian Cattle Dog",
+  "Australian Shepherd", "Basenji", "Basset Hound", "Beagle", "Bernese Mountain Dog",
+  "Bichon Frise", "Bloodhound", "Border Collie", "Boston Terrier", "Boxer",
+  "Brittany", "Bulldog", "Bullmastiff", "Cane Corso", "Cavalier King Charles Spaniel",
+  "Chihuahua", "Chow Chow", "Cocker Spaniel", "Collie", "Corgi", "Dachshund",
+  "Dalmatian", "Doberman Pinscher", "English Bulldog", "English Springer Spaniel",
+  "French Bulldog", "German Shepherd", "German Shorthaired Pointer", "Golden Retriever",
+  "Great Dane", "Great Pyrenees", "Greyhound", "Havanese", "Husky", "Irish Setter",
+  "Jack Russell Terrier", "Labrador Retriever", "Maltese", "Mastiff",
+  "Miniature Schnauzer", "Mixed Breed", "Newfoundland", "Papillon", "Pit Bull Terrier",
+  "Pointer", "Pomeranian", "Poodle", "Portuguese Water Dog", "Pug", "Rhodesian Ridgeback",
+  "Rottweiler", "Saint Bernard", "Samoyed", "Shar Pei", "Shetland Sheepdog", "Shiba Inu",
+  "Shih Tzu", "Siberian Husky", "Staffordshire Bull Terrier", "Vizsla", "Weimaraner",
+  "West Highland White Terrier", "Whippet", "Yorkshire Terrier",
+];
+
 /** Chicago-area placement locations for new listings. */
 export const CITY_OPTIONS = [
   { city: "Chicago (Loop)", lat: 41.8781, lng: -87.6298 },

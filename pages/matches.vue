@@ -57,9 +57,7 @@ const sorts: { v: SortKey; label: string }[] = [
       </div>
     </div>
 
-    <div v-if="showFilters" class="max-w-md my-4">
-      <FilterPanel @close="showFilters = false" />
-    </div>
+    <FilterPanel :open="showFilters" @close="showFilters = false" />
 
     <!-- empty -->
     <div v-if="!matches.length" class="mt-16 text-center">

@@ -90,15 +90,7 @@ const isActive = (to: string) => (to === "/" ? route.path === "/" : route.path.s
       </div>
     </nav>
 
-    <!-- global filter sheet -->
-    <div
-      v-if="showFilters"
-      class="fixed inset-0 z-50 bg-black/60 backdrop-blur-sm flex items-end sm:items-center justify-center sm:p-5"
-      @click.self="showFilters = false"
-    >
-      <div class="w-full sm:max-w-sm">
-        <FilterPanel @close="showFilters = false" />
-      </div>
-    </div>
+    <!-- global filter panel (self-contained full-screen overlay) -->
+    <FilterPanel :open="showFilters" @close="showFilters = false" />
   </div>
 </template>

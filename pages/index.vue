@@ -27,6 +27,12 @@ function rewind() {
   const last = history.value.pop();
   if (last) unswipe(last);
 }
+
+/* Bring every passed-on dog back into the deck (likes are untouched). */
+function restorePassed() {
+  history.value = history.value.filter((id) => liked.value.includes(id));
+  passed.value = [];
+}
 </script>
 
 <template>
@@ -34,7 +40,7 @@ function rewind() {
   <div
     class="relative w-full sm:max-w-md mx-auto p-1.5 sm:p-2 h-[calc(100dvh-3.5rem-4rem-env(safe-area-inset-bottom))] sm:h-[calc(100dvh-3.5rem-1rem)]"
   >
-    <SwipeDeck ref="deckRef" :deck="deck" @swiped="onSwiped" @undo="rewind" />
+    <SwipeDeck ref="deckRef" :deck="deck" :passed-count="passed.length" @swiped="onSwiped" @undo="rewind" @restore="restorePassed" />
 
     <!-- docked action bar: pass / bio / like centered, share as a right-edge utility -->
     <div v-if="deck.length" class="absolute inset-x-2 bottom-4 z-20 flex items-center justify-center gap-3">
