@@ -3,14 +3,12 @@ const route = useRoute();
 const router = useRouter();
 const { dogs, profile, matchPct, like, pass, liked, applied, submitApplication } = useStore();
 
+/* Like → Rescue → Message: liking stays on this page; Rescue registers intent;
+   Message opens the contact sheet to the listing org. */
 const isLiked = computed(() => !!dog.value && liked.value.includes(dog.value.id));
 const isApplied = computed(() => !!dog.value && applied.value.includes(dog.value.id));
-/* Post-match CTA depends on who you are: homes file to adopt; partner orgs take the pet in to rehome. */
 const isPartnerOrg = computed(() => ["shelter", "retirement"].includes(profile.value.userType));
-const actionLabel = computed(() => (isPartnerOrg.value ? "Rehome" : "File for adoption"));
-const appliedLabel = computed(() =>
-  isPartnerOrg.value ? "Rehome request sent" : "Application filed",
-);
+const messageOpen = ref(false);
 
 const dog = computed(() => dogs.value.find((d) => d.id === route.params.id));
 const photoIdx = ref(0);
@@ -25,8 +23,12 @@ const sourceIcons = { shelter: "🏥", foster: "🛋️", individual: "👤", re
 
 function act(dir: "left" | "right") {
   if (!dog.value) return;
-  dir === "right" ? like(dog.value.id) : pass(dog.value.id);
-  router.push(dir === "right" ? "/matches" : "/");
+  if (dir === "left") {
+    pass(dog.value.id);
+    router.push("/");
+  } else {
+    like(dog.value.id); // stay here — the button becomes Rescue
+  }
 }
 
 const toastMsg = ref("");
@@ -243,7 +245,7 @@ const compatTags = computed(() => {
     <div v-if="!dog.adopted" class="flex items-center justify-center gap-5 mt-7">
       <button class="w-16 h-16 grid place-items-center rounded-full bg-card shadow-pop border border-line text-2xl text-risk hover:scale-110 transition-transform" aria-label="Pass" @click="act('left')">✕</button>
 
-      <!-- not yet liked → like; liked → role-aware next step; filed → confirmation -->
+      <!-- not yet liked → Like (stays on page); liked → Rescue; rescued → Message -->
       <button
         v-if="!isLiked"
         class="h-16 px-8 flex items-center gap-2 rounded-full bg-brand shadow-pop text-lg font-semibold text-white hover:scale-105 hover:bg-brand-deep transition-all"
@@ -251,18 +253,26 @@ const compatTags = computed(() => {
       >♥ Like {{ dog.name }}</button>
       <button
         v-else-if="!isApplied"
-        class="h-16 px-8 flex items-center gap-2 rounded-full bg-safe shadow-pop text-lg font-semibold text-white hover:scale-105 hover:opacity-90 transition-all"
+        class="h-16 px-8 flex items-center gap-2.5 rounded-full bg-safe shadow-pop text-lg font-semibold text-white hover:scale-105 hover:opacity-90 transition-all"
         @click="submitApplication(dog.id)"
-      >{{ isPartnerOrg ? "🏡" : "📋" }} {{ actionLabel }}</button>
+      >
+        <svg viewBox="0 0 24 24" class="w-6 h-6" fill="currentColor" aria-hidden="true"><path d="M6 10.9a1.9 1.9 0 1 1 0-3.8 1.9 1.9 0 0 1 0 3.8zM9.9 7.85a2.05 2.05 0 1 1 0-4.1 2.05 2.05 0 0 1 0 4.1zM14.1 7.85a2.05 2.05 0 1 1 0-4.1 2.05 2.05 0 0 1 0 4.1zM18 10.9a1.9 1.9 0 1 1 0-3.8 1.9 1.9 0 0 1 0 3.8zM12 10.8c2.8 0 5.6 2.4 5.6 5.2 0 2-1.6 3.2-3.4 3.2-.85 0-1.5-.4-2.2-.4-.7 0-1.35.4-2.2.4-1.8 0-3.4-1.2-3.4-3.2 0-2.8 2.8-5.2 5.6-5.2z"/></svg>
+        Rescue
+      </button>
       <button
         v-else
-        class="h-16 px-8 flex items-center gap-2 rounded-full bg-safe-soft text-safe border border-safe/30 text-lg font-semibold cursor-default"
-        disabled
-      >✓ {{ appliedLabel }}</button>
+        class="h-16 px-8 flex items-center gap-2.5 rounded-full bg-brand shadow-pop text-lg font-semibold text-white hover:scale-105 hover:bg-brand-deep transition-all"
+        @click="messageOpen = true"
+      >
+        <svg viewBox="0 0 24 24" class="w-6 h-6" fill="currentColor" aria-hidden="true"><path d="M5 3h14a2 2 0 0 1 2 2v10a2 2 0 0 1-2 2H9.5L4 21.5V5a2 2 0 0 1 1-2z"/><path d="M7.5 8h9v1.7h-9zM7.5 11.3h6v1.7h-6z" fill="rgb(var(--c-brand))"/></svg>
+        Message
+      </button>
     </div>
     <p v-if="isApplied && !dog.adopted" class="text-center text-xs text-ink-soft mt-3">
-      {{ dog.source.name }} will review and reach out{{ isPartnerOrg ? " to coordinate the transfer" : " to schedule a meet" }}.
+      {{ dog.source.name }} has been notified — message them{{ isPartnerOrg ? " to coordinate the transfer" : " to set up a meet" }}.
     </p>
+
+    <MessageSheet :open="messageOpen" :dog="dog" @close="messageOpen = false" />
     </div>
   </div>
 
