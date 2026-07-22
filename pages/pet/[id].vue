@@ -12,6 +12,40 @@ const messageOpen = ref(false);
 
 const dog = computed(() => dogs.value.find((d) => d.id === route.params.id));
 const photoIdx = ref(0);
+watch(() => dog.value?.id, () => (photoIdx.value = 0));
+
+/* Photo gallery gestures: horizontal swipe or tap-zones (left 40% back,
+   right 60% forward). Vertical drags fall through to page scroll. */
+const photoCount = computed(() => dog.value?.photos.length ?? 0);
+const nextPhoto = () => (photoIdx.value = (photoIdx.value + 1) % photoCount.value);
+const prevPhoto = () =>
+  (photoIdx.value = (photoIdx.value - 1 + photoCount.value) % photoCount.value);
+
+const SWIPE_MIN = 40;
+const TAP_SLOP = 8;
+const gStartX = ref(0);
+const gStartY = ref(0);
+const gActive = ref(false);
+
+function heroDown(e: PointerEvent) {
+  if ((e.target as HTMLElement).closest("button, a")) return; // back / share / dots
+  gActive.value = true;
+  gStartX.value = e.clientX;
+  gStartY.value = e.clientY;
+}
+function heroUp(e: PointerEvent) {
+  if (!gActive.value) return;
+  gActive.value = false;
+  if (photoCount.value < 2) return;
+  const dx = e.clientX - gStartX.value;
+  const dy = e.clientY - gStartY.value;
+  if (Math.abs(dx) > SWIPE_MIN && Math.abs(dx) > Math.abs(dy)) {
+    dx < 0 ? nextPhoto() : prevPhoto();
+  } else if (Math.abs(dx) < TAP_SLOP && Math.abs(dy) < TAP_SLOP) {
+    const rect = (e.currentTarget as HTMLElement).getBoundingClientRect();
+    (gStartX.value - rect.left) / rect.width < 0.4 ? prevPhoto() : nextPhoto();
+  }
+}
 
 const sourceLabels = {
   shelter: "No-kill shelter",
@@ -87,7 +121,13 @@ const compatTags = computed(() => {
 <template>
   <div v-if="dog" class="sm:max-w-2xl sm:mx-auto pb-24 sm:pb-10 sm:px-4 sm:pt-4">
     <!-- full-bleed hero -->
-    <div class="relative overflow-hidden sm:rounded-3xl sm:shadow-pop" style="aspect-ratio: 4 / 4.4">
+    <div
+      class="relative overflow-hidden sm:rounded-3xl sm:shadow-pop select-none"
+      style="aspect-ratio: 4 / 4.4; touch-action: pan-y"
+      @pointerdown="heroDown"
+      @pointerup="heroUp"
+      @pointercancel="gActive = false"
+    >
       <DogPhoto :src="dog.photos[photoIdx]" :alt="`Photo ${photoIdx + 1} of ${dog.name}`" eager />
       <div class="absolute inset-x-0 top-0 h-24 bg-gradient-to-b from-black/70 to-transparent pointer-events-none" />
       <button
