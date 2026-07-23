@@ -1,6 +1,11 @@
 <script setup lang="ts">
 import type { Dog, TraitPentagon } from "~/types";
-import { CITY_OPTIONS } from "~/data/dogs";
+import { CITY_OPTIONS, DOG_BREEDS } from "~/data/dogs";
+
+/* Same vocabulary the adopter's breed filter uses, so a listing's breed can
+   actually be matched against what adopters searched for. */
+const breedOptions = DOG_BREEDS.map((b) => ({ value: b, label: b }));
+const secondaryBreedOptions = [{ value: "", label: "Not sure / none" }, ...breedOptions];
 
 const router = useRouter();
 const { profile, addDog } = useStore();
@@ -169,8 +174,14 @@ const segCls = (active: boolean) =>
               disabled
             />
           </div>
-          <div><label :class="labelCls" for="f-breed">Primary breed *</label><input id="f-breed" v-model="form.breed" :class="inputCls" placeholder="Border Collie, or Mixed Breed" /></div>
-          <div><label :class="labelCls" for="f-breed2">Secondary breed (guess)</label><input id="f-breed2" v-model="form.secondaryBreed" :class="inputCls" placeholder="Optional" /></div>
+          <div>
+            <p :class="labelCls">Primary breed *</p>
+            <AppSelect v-model="form.breed" :options="breedOptions" aria-label="Primary breed" searchable />
+          </div>
+          <div>
+            <p :class="labelCls">Secondary breed (guess)</p>
+            <AppSelect v-model="form.secondaryBreed" :options="secondaryBreedOptions" aria-label="Secondary breed" searchable />
+          </div>
           <div>
             <label :class="labelCls" for="f-age">Age — {{ lifeStage({ age: form.age } as any) }}</label>
             <input id="f-age" v-model.number="form.age" type="number" min="0" max="20" step="0.5" :class="inputCls" />
