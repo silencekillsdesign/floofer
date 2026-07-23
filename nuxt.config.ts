@@ -1,5 +1,24 @@
 export default defineNuxtConfig({
-  modules: ["@nuxtjs/tailwindcss", "@vueuse/nuxt", "@nuxt/image", "@vite-pwa/nuxt"],
+  modules: [
+    "@nuxtjs/tailwindcss",
+    "@vueuse/nuxt",
+    "@nuxt/image",
+    "@vite-pwa/nuxt",
+    "nuxt-og-image",
+    "@sentry/nuxt/module",
+  ],
+
+  /* Shared links need real Open Graph tags, and indexed pet pages mean organic
+     traffic for at-risk dogs — both require server rendering. Personalized,
+     localStorage-driven UI is wrapped in <ClientOnly> so hydration stays clean. */
+  ssr: true,
+  site: {
+    url: process.env.NUXT_PUBLIC_SITE_URL || "https://floofer.netlify.app",
+    name: "Floofer",
+  },
+  /* satori is pure JS — the takumi default pulls a native Rust binary that
+     would have to match the deploy architecture. */
+  ogImage: { defaults: { renderer: "satori" } },
 
   /* Remote pet photos get resized/WebP'd. On Netlify we hand off to their
      Image CDN — otherwise the build bundles a platform-specific sharp binary
@@ -75,9 +94,12 @@ export default defineNuxtConfig({
     rescuegroupsApiKey: "",
     petfinderApiKey: "",
     petfinderSecret: "",
+    public: {
+      // optional: enables error reporting when set
+      sentryDsn: "",
+    },
   },
   css: ["leaflet/dist/leaflet.css", "~/assets/css/main.css"],
-  ssr: false,
   app: {
     head: {
       title: "floofer — Swipe. Match. Save a life.",

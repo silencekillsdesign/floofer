@@ -43,6 +43,7 @@ function restorePassed() {
 </script>
 
 <template>
+  <ClientOnly>
   <!-- full bleed: header (3.5rem) → bottom nav (4rem + safe area) -->
   <div
     class="relative w-full sm:max-w-md mx-auto p-1.5 sm:p-2 h-[calc(100dvh-3.5rem-4rem-env(safe-area-inset-bottom))] sm:h-[calc(100dvh-3.5rem-1rem)]"
@@ -77,4 +78,5 @@ function restorePassed() {
 
     </div>
   </div>
+  </ClientOnly>
 </template>

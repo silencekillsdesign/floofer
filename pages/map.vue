@@ -77,6 +77,7 @@ watch(tileUrl, (u) => tiles?.setUrl(u));
 </script>
 
 <template>
+  <ClientOnly>
   <!-- full bleed: fills header → bottom nav -->
   <div class="flex flex-col w-full h-[calc(100dvh-3.5rem-4rem-env(safe-area-inset-bottom))] sm:h-auto sm:max-w-5xl sm:mx-auto sm:px-4 sm:pt-5 sm:pb-10">
     <div class="flex items-center justify-between gap-3 px-4 py-2.5 sm:px-0 sm:mb-3">
@@ -106,4 +107,5 @@ watch(tileUrl, (u) => tiles?.setUrl(u));
       <span class="flex items-center gap-1.5"><i class="w-3 h-3 rounded-full inline-block bg-ink-faint" /> Adopted</span>
     </div>
   </div>
+  </ClientOnly>
 </template>

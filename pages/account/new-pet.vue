@@ -144,6 +144,7 @@ const segCls = (active: boolean) =>
 </script>
 
 <template>
+  <ClientOnly>
   <div class="w-full max-w-2xl mx-auto px-4 pt-4 pb-24 sm:pt-5 sm:pb-10">
     <button class="mb-2 text-sm font-semibold text-ink-soft hover:text-ink" @click="router.back()">← Back to dashboard</button>
     <h1 class="font-display text-2xl font-semibold mb-1">List a pet</h1>
@@ -369,4 +370,5 @@ const segCls = (active: boolean) =>
       </div>
     </div>
   </div>
+  </ClientOnly>
 </template>

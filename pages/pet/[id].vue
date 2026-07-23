@@ -14,6 +14,32 @@ const dog = computed(() => dogs.value.find((d) => d.id === route.params.id));
 const photoIdx = ref(0);
 watch(() => dog.value?.id, () => (photoIdx.value = 0));
 
+/* Shared links carry the dog's face and their deadline — the whole point of
+   server rendering this page. */
+watchEffect(() => {
+  const d = dog.value;
+  if (!d) return;
+  const urgency = d.risk === "high" && d.daysLeft != null ? `⚠ ${d.daysLeft} days left. ` : "";
+  const description = `${urgency}${d.name} is a ${d.age}yr ${d.breed} in ${d.location.city} looking for a home. ${d.tagline}`;
+  useSeoMeta({
+    title: `${d.name} — ${d.breed} up for adoption | Floofer`,
+    description,
+    ogTitle: `Meet ${d.name}${d.risk === "high" ? " — at risk" : ""}`,
+    ogDescription: description,
+    ogType: "website",
+    twitterCard: "summary_large_image",
+  });
+  defineOgImage("Pet", {
+    name: d.name,
+    breed: d.breed,
+    tagline: d.tagline,
+    photo: d.photos[0],
+    daysLeft: d.risk === "high" ? (d.daysLeft ?? null) : null,
+    city: d.location.city,
+    age: d.age,
+  });
+});
+
 /* Photo gallery gestures: horizontal swipe or tap-zones (left 40% back,
    right 60% forward). Vertical drags fall through to page scroll. */
 const photoCount = computed(() => dog.value?.photos.length ?? 0);
@@ -138,7 +164,7 @@ const compatTags = computed(() => {
         <svg viewBox="0 0 24 24" class="w-5 h-5" fill="none" stroke="currentColor" stroke-width="2.6" stroke-linecap="round" stroke-linejoin="round"><path d="M15 5l-7 7 7 7"/></svg>
       </button>
       <div class="absolute top-4 left-16"><RiskBadge :dog="dog" detailed /></div>
-      <div class="absolute top-3 right-3"><MatchRing :pct="matchPct(dog)" :size="60" /></div>
+      <ClientOnly><div class="absolute top-3 right-3"><MatchRing :pct="matchPct(dog)" :size="60" /></div></ClientOnly>
       <button
         class="absolute bottom-3 right-3 w-10 h-10 grid place-items-center rounded-full bg-black/40 backdrop-blur text-white hover:bg-grape transition-colors"
         :aria-label="`Share ${dog.name}'s profile`" title="Share"
@@ -167,12 +193,14 @@ const compatTags = computed(() => {
     <div class="mt-5">
       <div class="flex items-start justify-between gap-4">
         <h1 class="font-display text-3xl font-semibold">{{ dog.name }}</h1>
-        <span
-          class="shrink-0 px-3.5 py-1.5 rounded-full text-sm font-bold whitespace-nowrap"
-          :class="matchPct(dog) >= 80 ? 'bg-safe-soft text-safe' : matchPct(dog) >= 60 ? 'bg-brand-soft text-brand' : 'bg-paper-warm text-ink-soft'"
-        >
-          {{ matchPct(dog) }}% match
-        </span>
+        <ClientOnly>
+          <span
+            class="shrink-0 px-3.5 py-1.5 rounded-full text-sm font-bold whitespace-nowrap"
+            :class="matchPct(dog) >= 80 ? 'bg-safe-soft text-safe' : matchPct(dog) >= 60 ? 'bg-brand-soft text-brand' : 'bg-paper-warm text-ink-soft'"
+          >
+            {{ matchPct(dog) }}% match
+          </span>
+        </ClientOnly>
       </div>
       <p class="flex items-center gap-2 w-full text-ink-soft font-medium mt-1">
         <span aria-hidden="true">🐕</span>
@@ -243,7 +271,8 @@ const compatTags = computed(() => {
       </p>
     </section>
 
-    <!-- pentagon -->
+    <!-- pentagon (personalized: needs the visitor's own trait profile) -->
+    <ClientOnly>
     <section class="mt-6 p-5 bg-card rounded-3xl shadow-card border border-line">
       <div class="flex items-center justify-between mb-1">
         <h2 class="font-display text-xl font-semibold">Compatibility pentagon</h2>
@@ -261,6 +290,7 @@ const compatTags = computed(() => {
         Edit bio
       </NuxtLink>
     </section>
+    </ClientOnly>
 
     <!-- source -->
     <section class="mt-4 p-5 bg-card rounded-3xl shadow-card border border-line">
@@ -288,7 +318,8 @@ const compatTags = computed(() => {
       </NuxtLink>
     </section>
 
-    <!-- actions -->
+    <!-- actions (depend on this visitor's liked/applied state) -->
+    <ClientOnly>
     <div v-if="!dog.adopted" class="flex items-center justify-center gap-5 mt-7">
       <button class="w-16 h-16 grid place-items-center rounded-full bg-card shadow-pop border border-line text-2xl text-risk hover:scale-110 transition-transform" aria-label="Pass" @click="act('left')">✕</button>
 
@@ -320,6 +351,7 @@ const compatTags = computed(() => {
     </p>
 
     <MessageSheet :open="messageOpen" :dog="dog" @close="messageOpen = false" />
+    </ClientOnly>
     </div>
   </div>
 

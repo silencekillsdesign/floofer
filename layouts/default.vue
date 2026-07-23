@@ -33,10 +33,12 @@ const isActive = (to: string) => (to === "/" ? route.path === "/" : route.path.s
               :class="isActive(t.to) ? 'bg-brand text-white' : 'text-ink-soft hover:bg-paper-warm hover:text-ink'"
             >
               {{ t.label }}
-              <span
-                v-if="t.to === '/matches' && likedCount"
-                class="absolute -top-1 -right-1 min-w-[18px] h-[18px] px-1 grid place-items-center rounded-full bg-pink text-white text-[10px] font-bold"
-              >{{ likedCount }}</span>
+              <ClientOnly>
+                <span
+                  v-if="t.to === '/matches' && likedCount"
+                  class="absolute -top-1 -right-1 min-w-[18px] h-[18px] px-1 grid place-items-center rounded-full bg-pink text-white text-[10px] font-bold"
+                >{{ likedCount }}</span>
+              </ClientOnly>
             </NuxtLink>
           </nav>
 
@@ -82,10 +84,12 @@ const isActive = (to: string) => (to === "/" ? route.path === "/" : route.path.s
         >
           <svg viewBox="0 0 24 24" class="w-6 h-6"><path :d="t.icon" fill="currentColor" /></svg>
           {{ t.label }}
-          <span
-            v-if="t.to === '/matches' && likedCount"
-            class="absolute top-1.5 right-1/2 translate-x-4 min-w-[16px] h-4 px-1 grid place-items-center rounded-full bg-pink text-white text-[9px] font-bold"
-          >{{ likedCount }}</span>
+          <ClientOnly>
+            <span
+              v-if="t.to === '/matches' && likedCount"
+              class="absolute top-1.5 right-1/2 translate-x-4 min-w-[16px] h-4 px-1 grid place-items-center rounded-full bg-pink text-white text-[9px] font-bold"
+            >{{ likedCount }}</span>
+          </ClientOnly>
         </NuxtLink>
       </div>
     </nav>

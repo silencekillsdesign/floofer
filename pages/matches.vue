@@ -32,6 +32,7 @@ const sorts: { v: SortKey; label: string }[] = [
 </script>
 
 <template>
+  <ClientOnly>
   <div class="w-full max-w-2xl mx-auto px-4 pt-4 pb-24 sm:pt-5 sm:pb-10">
     <div class="flex flex-wrap items-end justify-between gap-3 mb-1">
       <div>
@@ -118,4 +119,5 @@ const sorts: { v: SortKey; label: string }[] = [
       Changed your mind about someone? Open their profile and tap ✕.
     </p>
   </div>
+  </ClientOnly>
 </template>

@@ -113,6 +113,7 @@ onMounted(() => {
 </script>
 
 <template>
+  <ClientOnly>
   <div class="w-full max-w-5xl mx-auto px-4 pt-4 pb-24 sm:pt-5 sm:pb-10">
     <h1 class="font-display text-2xl font-semibold mb-1">Account</h1>
     <p class="text-sm text-ink-soft mb-5">Your dashboard changes with your role — switch below to preview each experience.</p>
@@ -416,4 +417,5 @@ onMounted(() => {
       </section>
     </div>
   </div>
+  </ClientOnly>
 </template>
