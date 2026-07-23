@@ -284,7 +284,7 @@ onMounted(() => {
           <NuxtLink
             v-if="bioSaved"
             to="/matches"
-            class="px-5 py-2.5 rounded-full bg-paper-warm text-sm font-semibold text-center hover:bg-line transition-colors"
+            class="px-5 py-2.5 rounded-full bg-paper-warm border border-line text-sm font-semibold text-center hover:bg-line transition-colors"
           >← Back to matches</NuxtLink>
         </div>
         <p v-if="bioSaved" class="text-xs text-ink-soft mt-2">Bio saved — every match % has been recalculated.</p>

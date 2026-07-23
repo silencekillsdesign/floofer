@@ -308,7 +308,7 @@ const compatTags = computed(() => {
       <PentagonChart :pet="dog.traits" :user="profile.traits" :size="320" />
       <NuxtLink
         to="/account?edit=bio"
-        class="mt-4 w-full flex items-center justify-center gap-2 py-3 rounded-full bg-paper-warm text-sm font-semibold hover:bg-line transition-colors"
+        class="mt-4 w-full flex items-center justify-center gap-2 py-3 rounded-full bg-paper-warm border border-line text-sm font-semibold hover:bg-line transition-colors"
       >
         <svg viewBox="0 0 24 24" class="w-4 h-4 text-brand" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round"><path d="M12 20h9M16.5 3.5a2.1 2.1 0 0 1 3 3L7 19l-4 1 1-4z"/></svg>
         Edit bio
@@ -335,7 +335,7 @@ const compatTags = computed(() => {
       </div>
       <NuxtLink
         to="/map"
-        class="mt-3.5 w-full flex items-center justify-center gap-1.5 py-2.5 rounded-full bg-paper-warm text-sm font-semibold hover:bg-line transition-colors"
+        class="mt-3.5 w-full flex items-center justify-center gap-1.5 py-2.5 rounded-full bg-paper-warm border border-line text-sm font-semibold hover:bg-line transition-colors"
       >
         <svg viewBox="0 0 24 24" class="w-4 h-4 text-brand" fill="currentColor"><path d="M12 21s-7-5.5-7-11a7 7 0 1 1 14 0c0 5.5-7 11-7 11zm0-8.5a2.5 2.5 0 1 0 0-5 2.5 2.5 0 0 0 0 5z"/></svg>
         View on map

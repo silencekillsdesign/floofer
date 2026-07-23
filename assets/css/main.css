@@ -2,7 +2,9 @@
 :root {
   /* dark (default — Floofer) */
   --c-paper: 0 0 0;
-  --c-paper-warm: 19 19 24;
+  /* sits below --c-card so buttons/pills read as recessed against a card
+     surface, while staying light enough to show against pure-black pages */
+  --c-paper-warm: 14 14 19;
   --c-card: 21 21 28;
   --c-line: 38 38 51;
   --c-ink: 242 243 247;
