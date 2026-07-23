@@ -6,30 +6,11 @@
 const { profile } = useStore();
 const a = computed(() => profile.value.adoption);
 
-/* ---------- completeness ---------- */
-const checks = computed<{ label: string; done: boolean }[]>(() => {
-  const d = a.value;
-  return [
-    { label: "Phone number", done: !!profile.value.phone.trim() },
-    { label: "Primary caregiver", done: !!d.household.caregiver.trim() },
-    { label: "Dwelling type", done: !!d.housing.dwelling },
-    { label: "Rent or own", done: !!d.housing.ownership },
-    {
-      label: "Landlord contact",
-      done: d.housing.ownership === "own" || (!!d.housing.landlordName.trim() && !!d.housing.landlordPhone.trim()),
-    },
-    { label: "Pets allowed", done: d.housing.ownership === "own" || !!d.housing.petsAllowed },
-    { label: "Fenced yard", done: !!d.housing.fencedYard },
-    { label: "Where the dog stays when alone", done: !!d.housing.keptWhenAlone.trim() },
-    { label: "Employment", done: !!d.employment.employer.trim() || d.isStudent },
-    { label: "Current or past pets", done: d.firstTimeOwner || !!d.vet.currentPets.trim() || !!d.vet.pastPets.trim() },
-    { label: "Vet reference", done: d.firstTimeOwner || (!!d.vet.vetName.trim() && !!d.vet.vetPhone.trim()) },
-    { label: "Reference-check permission", done: d.vet.allowReferenceCheck },
-    { label: "Prepared for vet costs", done: d.vet.financiallyPrepared },
-  ];
-});
-const pct = computed(() => Math.round((checks.value.filter((c) => c.done).length / checks.value.length) * 100));
-const missing = computed(() => checks.value.filter((c) => !c.done).map((c) => c.label));
+/* ---------- completeness (shared with the message sheet) ---------- */
+const completeness = computed(() => adoptionCompleteness(profile.value));
+const checks = computed(() => completeness.value.checks);
+const pct = computed(() => completeness.value.pct);
+const missing = computed(() => completeness.value.missing);
 
 const sectionDone = (labels: string[]) =>
   labels.every((l) => checks.value.find((c) => c.label === l)?.done);

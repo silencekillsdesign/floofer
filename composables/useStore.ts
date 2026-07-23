@@ -194,6 +194,33 @@ export function useStore() {
   };
 }
 
+/** Adoption-profile completeness — shared by the profile editor and the
+    message sheet (which attaches a summary for the rescue). */
+export function adoptionCompleteness(p: Profile) {
+  const d = p.adoption;
+  const checks: { label: string; done: boolean }[] = [
+    { label: "Phone number", done: !!p.phone.trim() },
+    { label: "Primary caregiver", done: !!d.household.caregiver.trim() },
+    { label: "Dwelling type", done: !!d.housing.dwelling },
+    { label: "Rent or own", done: !!d.housing.ownership },
+    {
+      label: "Landlord contact",
+      done: d.housing.ownership === "own" || (!!d.housing.landlordName.trim() && !!d.housing.landlordPhone.trim()),
+    },
+    { label: "Pets allowed", done: d.housing.ownership === "own" || !!d.housing.petsAllowed },
+    { label: "Fenced yard", done: !!d.housing.fencedYard },
+    { label: "Where the dog stays when alone", done: !!d.housing.keptWhenAlone.trim() },
+    { label: "Employment", done: !!d.employment.employer.trim() || d.isStudent },
+    { label: "Current or past pets", done: d.firstTimeOwner || !!d.vet.currentPets.trim() || !!d.vet.pastPets.trim() },
+    { label: "Vet reference", done: d.firstTimeOwner || (!!d.vet.vetName.trim() && !!d.vet.vetPhone.trim()) },
+    { label: "Reference-check permission", done: d.vet.allowReferenceCheck },
+    { label: "Prepared for vet costs", done: d.vet.financiallyPrepared },
+  ];
+  const pct = Math.round((checks.filter((c) => c.done).length / checks.length) * 100);
+  const missing = checks.filter((c) => !c.done).map((c) => c.label);
+  return { checks, pct, missing };
+}
+
 /** Life stage per adoption-platform convention, derived from age. */
 export function lifeStage(d: Dog): string {
   if (d.age < 1) return "Puppy";

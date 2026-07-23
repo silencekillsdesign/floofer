@@ -32,6 +32,37 @@ onUnmounted(() => {
 
 const canSend = computed(() => name.value.trim() && email.value.trim() && message.value.trim());
 
+/* Adopters send their profile summary along with the message — this is the
+   moment the standing adoption profile earns its keep with the rescue. */
+const isAdopter = computed(() => profile.value.userType === "adopter");
+const completeness = computed(() => adoptionCompleteness(profile.value));
+const highlights = computed(() => {
+  const a = profile.value.adoption;
+  const items: { label: string; good: boolean }[] = [];
+  if (a.firstTimeOwner) {
+    items.push({ label: "🌱 First-time owner", good: true });
+  } else {
+    items.push(
+      a.vet.vetName.trim() && a.vet.vetPhone.trim()
+        ? { label: "🩺 Vet reference on file", good: true }
+        : { label: "🩺 No vet reference yet", good: false },
+    );
+  }
+  items.push(
+    a.vet.allowReferenceCheck
+      ? { label: "✓ Reference check permitted", good: true }
+      : { label: "Reference check not yet permitted", good: false },
+  );
+  if (a.housing.ownership === "own") items.push({ label: "🏠 Owns their home", good: true });
+  else if (a.housing.landlordPhone.trim()) items.push({ label: "🏠 Landlord contact on file", good: true });
+  else if (a.housing.ownership) items.push({ label: "🏠 Landlord contact missing", good: false });
+  if (a.housing.fencedYard) {
+    items.push({ label: a.housing.fencedYard === "yes" ? "🚧 Fenced yard" : "🚧 No fenced yard", good: a.housing.fencedYard === "yes" });
+  }
+  if (profile.value.petPhotos.length) items.push({ label: `🐾 ${profile.value.petPhotos.length} resident-pet photo${profile.value.petPhotos.length > 1 ? "s" : ""}`, good: true });
+  return items;
+});
+
 const inputCls =
   "w-full rounded-xl border border-line bg-card px-3.5 py-3 text-[15px] font-medium focus:outline-none focus:border-brand focus:ring-[3px] focus:ring-brand/25";
 const labelCls = "block text-xs font-semibold uppercase tracking-wide text-ink-soft mb-1.5";
@@ -74,6 +105,26 @@ const labelCls = "block text-xs font-semibold uppercase tracking-wide text-ink-s
             <span class="ml-auto shrink-0 px-2.5 py-1 rounded-full bg-safe-soft text-safe text-[10px] font-bold">🐾 Rescue request</span>
           </div>
 
+          <!-- attached adoption-profile summary (adopters) -->
+          <div v-if="isAdopter" class="p-3.5 rounded-2xl bg-card border border-line">
+            <div class="flex items-center justify-between gap-3 mb-2">
+              <p class="text-xs font-semibold uppercase tracking-wide text-ink-soft">📎 Attached · adoption profile</p>
+              <span class="text-xs font-bold shrink-0" :class="completeness.pct === 100 ? 'text-safe' : 'text-brand'">
+                {{ completeness.pct }}% complete
+              </span>
+            </div>
+            <div class="flex flex-wrap gap-1.5">
+              <span
+                v-for="h in highlights" :key="h.label"
+                class="px-2.5 py-1 rounded-full text-[11px] font-semibold"
+                :class="h.good ? 'bg-safe-soft text-safe' : 'bg-paper-warm text-ink-faint'"
+              >{{ h.label }}</span>
+            </div>
+            <p v-if="completeness.pct < 100" class="text-[11px] text-ink-faint mt-2">
+              Rescues see this summary — <NuxtLink to="/account" class="text-brand font-semibold underline" @click="emit('close')">finish your profile</NuxtLink> to boost approval odds.
+            </p>
+          </div>
+
           <div>
             <label :class="labelCls" for="msg-name">Your name</label>
             <input id="msg-name" v-model="name" :class="inputCls" autocomplete="name" />
@@ -98,6 +149,7 @@ const labelCls = "block text-xs font-semibold uppercase tracking-wide text-ink-s
             <p class="text-sm text-ink-soft">
               {{ dog.source.name }} will reach out at <strong class="text-ink font-semibold">{{ email }}</strong> to set up a meet with {{ dog.name }}.
             </p>
+            <p v-if="isAdopter" class="text-xs text-ink-faint mt-2">Your adoption profile summary went along with it.</p>
           </div>
         </div>
 
