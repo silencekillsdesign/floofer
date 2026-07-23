@@ -143,16 +143,15 @@ useEventListener(window, "keydown", onKey);
             class="px-2.5 py-0.5 rounded-full bg-risk text-white text-[10px] font-bold whitespace-nowrap"
           >⚠ {{ dog.daysLeft != null ? `${dog.daysLeft} days` : "at risk" }}</span>
         </div>
-        <p class="flex items-center flex-wrap gap-x-1.5 gap-y-0.5 text-[12px] font-semibold mt-1">
+        <p class="flex items-center flex-wrap gap-x-1.5 text-[12px] font-semibold mt-1">
           <span class="flex items-center gap-0.5">
             <svg viewBox="0 0 24 24" class="w-3.5 h-3.5" fill="currentColor"><path d="M12 21s-7-5.5-7-11a7 7 0 1 1 14 0c0 5.5-7 11-7 11zm0-8.5a2.5 2.5 0 1 0 0-5 2.5 2.5 0 0 0 0 5z"/></svg>
             {{ dog.location.city }} <span class="text-white/60 font-medium">({{ milesFrom(dog) }}mi.)</span>
           </span>
           <span class="text-white/40" aria-hidden="true">·</span>
-          <span>{{ dog.breed }}</span>
-          <span class="text-white/40" aria-hidden="true">·</span>
           <span>{{ dog.sex === "F" ? "♀" : "♂" }}<span class="sr-only">{{ dog.sex === "F" ? "Female" : "Male" }}</span></span>
         </p>
+        <p class="text-[12px] font-semibold mt-0.5 truncate">{{ dog.breed }}</p>
       </div>
 
       <!-- photo dots -->
