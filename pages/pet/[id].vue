@@ -228,10 +228,10 @@ const compatTags = computed(() => {
       </div>
       <p class="flex items-center gap-2 w-full text-ink-soft font-medium mt-1">
         <span aria-hidden="true">🐕</span>
-        <span>{{ dog.sex === "F" ? "♀ Female" : "♂ Male" }}</span>
+        <span>{{ dog.breed }}<template v-if="dog.secondaryBreed"> / {{ dog.secondaryBreed }}</template></span>
       </p>
       <div class="flex flex-wrap gap-1.5 mt-2.5">
-        <span class="px-2.5 py-1 rounded-full bg-paper-warm text-ink-soft text-xs font-semibold">{{ dog.breed }}<template v-if="dog.secondaryBreed"> / {{ dog.secondaryBreed }}</template></span>
+        <span class="px-2.5 py-1 rounded-full bg-paper-warm text-ink-soft text-xs font-semibold">{{ dog.sex === "F" ? "♀ Female" : "♂ Male" }}</span>
         <span class="px-2.5 py-1 rounded-full bg-paper-warm text-ink-soft text-xs font-semibold">{{ lifeStage(dog) }} · {{ dog.age }} {{ dog.age === 1 ? "yr" : "yrs" }}</span>
         <span class="px-2.5 py-1 rounded-full bg-paper-warm text-ink-soft text-xs font-semibold">{{ dog.weightLbs }} lbs</span>
         <span class="px-2.5 py-1 rounded-full bg-paper-warm text-ink-soft text-xs font-semibold">📍 {{ milesFrom(dog) }} mi away</span>
