@@ -34,21 +34,43 @@ const TRAIT_META: { key: keyof TraitPentagon; label: string; low: string; high: 
   { key: "training", label: "Dog experience", low: "First-timer", high: "Pro handler" },
 ];
 
-const records = [
-  { name: "Vaccination records — Scout.pdf", date: "Jun 12, 2026", size: "1.2 MB" },
-  { name: "Spay-neuter certificate — Pearl.pdf", date: "May 30, 2026", size: "640 KB" },
-  { name: "Home check report.pdf", date: "May 2, 2026", size: "2.1 MB" },
-];
+/* Documents: search + real uploads (metadata only in the demo). */
+const docQuery = ref("");
+const docInput = ref<HTMLInputElement | null>(null);
+const filteredDocs = computed(() => {
+  const q = docQuery.value.trim().toLowerCase();
+  const docs = profile.value.documents ?? [];
+  return q ? docs.filter((d) => d.name.toLowerCase().includes(q)) : docs;
+});
+function onDocPick(e: Event) {
+  const el = e.target as HTMLInputElement;
+  const stamp = new Date().toLocaleDateString("en-US", { month: "short", day: "numeric", year: "numeric" });
+  for (const f of el.files ?? []) {
+    const kb = f.size / 1024;
+    profile.value.documents.push({
+      name: f.name,
+      date: stamp,
+      size: kb >= 1024 ? `${(kb / 1024).toFixed(1)} MB` : `${Math.max(1, Math.round(kb))} KB`,
+    });
+  }
+  el.value = "";
+}
+function removeDoc(doc: { name: string; date: string }) {
+  profile.value.documents = profile.value.documents.filter(
+    (d) => !(d.name === doc.name && d.date === doc.date),
+  );
+}
 
 /* Personal info shows read-only until "Edit profile"; edits go to a draft so
    Cancel can discard them. */
 const editing = ref(false);
 const saved = ref(false);
-const draft = reactive({ name: "", email: "", city: "" });
+const draft = reactive({ name: "", email: "", phone: "", city: "" });
 
 function startEdit() {
   draft.name = profile.value.name;
   draft.email = profile.value.email;
+  draft.phone = profile.value.phone;
   draft.city = profile.value.city;
   editing.value = true;
   saved.value = false;
@@ -56,6 +78,7 @@ function startEdit() {
 function saveEdit() {
   profile.value.name = draft.name.trim() || profile.value.name;
   profile.value.email = draft.email.trim() || profile.value.email;
+  profile.value.phone = draft.phone.trim();
   profile.value.city = draft.city.trim() || profile.value.city;
   editing.value = false;
   saved.value = true;
@@ -165,6 +188,10 @@ onMounted(() => {
               <dd class="text-sm font-semibold text-right truncate">{{ profile.email }}</dd>
             </div>
             <div class="flex items-center justify-between gap-4 py-2.5">
+              <dt class="text-xs font-semibold uppercase tracking-wide text-ink-soft">Phone</dt>
+              <dd class="text-sm font-semibold text-right truncate" :class="!profile.phone && 'text-ink-faint font-medium'">{{ profile.phone || "Add in Edit bio" }}</dd>
+            </div>
+            <div class="flex items-center justify-between gap-4 py-2.5">
               <dt class="text-xs font-semibold uppercase tracking-wide text-ink-soft">Location</dt>
               <dd class="text-sm font-semibold text-right truncate">{{ profile.city }}</dd>
             </div>
@@ -187,6 +214,10 @@ onMounted(() => {
           <div>
             <label class="block text-xs font-semibold uppercase tracking-wide text-ink-soft mb-1" for="p-email">Email</label>
             <input id="p-email" v-model="draft.email" type="email" class="w-full rounded-xl border border-line bg-paper px-3 py-2.5 text-sm font-medium" />
+          </div>
+          <div>
+            <label class="block text-xs font-semibold uppercase tracking-wide text-ink-soft mb-1" for="p-phone">Phone</label>
+            <input id="p-phone" v-model="draft.phone" type="tel" class="w-full rounded-xl border border-line bg-paper px-3 py-2.5 text-sm font-medium" placeholder="(555) 555-5555" />
           </div>
           <div>
             <label class="block text-xs font-semibold uppercase tracking-wide text-ink-soft mb-1" for="p-city">Location</label>
@@ -319,24 +350,55 @@ onMounted(() => {
         <p class="text-xs text-ink-faint mt-3">Marking a pet adopted disables its card on every adopter's matches page instantly.</p>
       </section>
 
-      <!-- ==== Records ==== -->
+      <!-- ==== Adoption profile (adopter) ==== -->
+      <AdoptionProfile v-if="profile.userType === 'adopter'" />
+
+      <!-- ==== Documents ==== -->
       <section class="min-w-0 p-5 bg-card rounded-3xl shadow-card border border-line" :class="profile.userType === 'adopter' ? '' : 'md:col-span-2'">
-        <div class="flex flex-wrap items-center justify-between gap-2 mb-3">
+        <div class="flex flex-wrap items-center justify-between gap-2 mb-2">
           <h2 class="font-display text-lg font-semibold">{{ profile.userType === "adopter" ? "My documents" : "Pet records" }}</h2>
-          <button class="px-4 py-2 rounded-full border border-line text-sm font-semibold text-ink-soft hover:border-ink-faint">Upload</button>
+          <button class="px-4 py-2 rounded-full bg-brand text-white text-sm font-semibold hover:bg-brand-deep" @click="docInput?.click()">+ Upload</button>
         </div>
+        <p v-if="profile.userType === 'adopter'" class="text-xs text-ink-soft mb-3">
+          Landlord consent, pet-deposit receipts, vaccination records — anything a rescue might ask for during approval.
+        </p>
+
+        <!-- search -->
+        <div class="relative mb-2">
+          <svg viewBox="0 0 24 24" class="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-ink-faint pointer-events-none" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round"><circle cx="11" cy="11" r="7"/><path d="m20 20-3.8-3.8"/></svg>
+          <input
+            v-model="docQuery"
+            type="text"
+            placeholder="Search documents…"
+            class="w-full rounded-xl border border-line bg-paper pl-9 pr-3 py-2 text-sm font-medium focus:outline-none focus:border-brand focus:ring-[3px] focus:ring-brand/25"
+            aria-label="Search documents"
+          />
+        </div>
+
         <ul class="divide-y divide-line/60">
-          <li v-for="r in records" :key="r.name" class="py-2.5 flex items-center justify-between gap-3">
+          <li v-for="r in filteredDocs" :key="r.name + r.date" class="py-2.5 flex items-center justify-between gap-3">
             <div class="flex items-center gap-2.5 min-w-0">
-              <span class="text-lg shrink-0">📄</span>
+              <span class="text-lg shrink-0" aria-hidden="true">📄</span>
               <div class="min-w-0">
                 <p class="text-sm font-semibold truncate">{{ r.name }}</p>
                 <p class="text-xs text-ink-faint">{{ r.date }} · {{ r.size }}</p>
               </div>
             </div>
-            <button class="text-xs font-semibold text-brand hover:underline shrink-0">Download</button>
+            <div class="flex items-center gap-3 shrink-0">
+              <button class="text-xs font-semibold text-brand hover:underline">Download</button>
+              <button
+                v-if="!r.builtin"
+                class="text-xs font-semibold text-ink-faint hover:text-risk"
+                :aria-label="`Remove ${r.name}`"
+                @click="removeDoc(r)"
+              >Remove</button>
+            </div>
+          </li>
+          <li v-if="!filteredDocs.length" class="py-6 text-center text-sm text-ink-soft">
+            {{ docQuery ? `No documents matching “${docQuery}”` : "No documents yet — upload your first above." }}
           </li>
         </ul>
+        <input ref="docInput" type="file" multiple class="hidden" @change="onDocPick" />
       </section>
 
       <!-- ==== Adopter: photo gallery placeholder ==== -->

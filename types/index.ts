@@ -66,10 +66,51 @@ export interface Dog {
   adopted?: boolean;
 }
 
+/* Adoption-application details, modeled on a standard humane-society dog
+   adoption form. Only pre-adoption facts live here — per-dog questions
+   (why this dog, signatures) belong to the application moment. */
+export interface AdoptionDetails {
+  employment: { employer: string; occupation: string; years: string };
+  isStudent: boolean;
+  isMilitary: boolean;
+  firstTimeOwner: boolean;
+  household: { residents: number; childrenAges: string; allergies: string; caregiver: string };
+  housing: {
+    dwelling: "" | "house" | "apartment" | "condo" | "farm" | "other";
+    ownership: "" | "own" | "rent" | "family";
+    landlordName: string;
+    landlordPhone: string;
+    petsAllowed: "" | "yes" | "no" | "unsure";
+    fencedYard: "" | "yes" | "no";
+    hoursAlone: number;
+    keptWhenAlone: string;
+    traffic: "" | "light" | "moderate" | "heavy";
+  };
+  vet: {
+    currentPets: string;
+    pastPets: string;
+    petsVaccinated: "" | "yes" | "no";
+    petsFixed: "" | "yes" | "no";
+    vetName: string;
+    vetPhone: string;
+    allowReferenceCheck: boolean;
+    financiallyPrepared: boolean;
+  };
+}
+
+export interface StoredDoc {
+  name: string;
+  date: string;
+  size: string;
+  /** Seeded demo records can't be deleted-then-missed; uploads can. */
+  builtin?: boolean;
+}
+
 export interface Profile {
   userType: UserType;
   name: string;
   email: string;
+  phone: string;
   city: string;
   traits: TraitPentagon;
   payment: { brand: string; last4: string; exp: string } | null;
@@ -77,6 +118,8 @@ export interface Profile {
   homePhotos: string[];
   /** Pets already living in the home — used for compatibility review. */
   petPhotos: string[];
+  adoption: AdoptionDetails;
+  documents: StoredDoc[];
 }
 
 export interface Filters {
