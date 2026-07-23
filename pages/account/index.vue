@@ -150,34 +150,35 @@ onMounted(() => {
       <section class="min-w-0 p-5 bg-card rounded-3xl shadow-card border border-line md:col-span-2">
         <div class="flex flex-wrap items-center justify-between gap-2 mb-3">
           <h2 class="font-display text-lg font-semibold">{{ profile.userType === "adopter" ? "Personal info" : "Organization info" }}</h2>
+          <span v-if="saved" class="text-sm font-semibold text-safe">Saved ✓</span>
+        </div>
+
+        <!-- view mode: rows only, payment stays tucked away until editing -->
+        <template v-if="!editing">
+          <dl class="divide-y divide-line/60">
+            <div class="flex items-center justify-between gap-4 py-2.5">
+              <dt class="text-xs font-semibold uppercase tracking-wide text-ink-soft">Name</dt>
+              <dd class="text-sm font-semibold text-right truncate">{{ profile.name }}</dd>
+            </div>
+            <div class="flex items-center justify-between gap-4 py-2.5">
+              <dt class="text-xs font-semibold uppercase tracking-wide text-ink-soft">Email</dt>
+              <dd class="text-sm font-semibold text-right truncate">{{ profile.email }}</dd>
+            </div>
+            <div class="flex items-center justify-between gap-4 py-2.5">
+              <dt class="text-xs font-semibold uppercase tracking-wide text-ink-soft">Location</dt>
+              <dd class="text-sm font-semibold text-right truncate">{{ profile.city }}</dd>
+            </div>
+          </dl>
           <button
-            v-if="!editing"
-            class="flex items-center gap-1.5 px-4 py-2 rounded-full border border-line text-sm font-semibold text-ink-soft hover:border-ink-faint transition-colors"
+            class="mt-3 w-full sm:w-auto flex items-center justify-center gap-1.5 px-5 py-2.5 rounded-full border border-line text-sm font-semibold text-ink-soft hover:border-ink-faint transition-colors"
             @click="startEdit"
           >
             <svg viewBox="0 0 24 24" class="w-4 h-4 text-brand" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round"><path d="M12 20h9M16.5 3.5a2.1 2.1 0 0 1 3 3L7 19l-4 1 1-4z"/></svg>
-            Edit profile
+            Edit bio
           </button>
-          <span v-else-if="saved" class="text-sm font-semibold text-safe">Saved ✓</span>
-        </div>
+        </template>
 
-        <!-- view mode -->
-        <dl v-if="!editing" class="divide-y divide-line/60">
-          <div class="flex items-center justify-between gap-4 py-2.5">
-            <dt class="text-xs font-semibold uppercase tracking-wide text-ink-soft">Name</dt>
-            <dd class="text-sm font-semibold text-right truncate">{{ profile.name }}</dd>
-          </div>
-          <div class="flex items-center justify-between gap-4 py-2.5">
-            <dt class="text-xs font-semibold uppercase tracking-wide text-ink-soft">Email</dt>
-            <dd class="text-sm font-semibold text-right truncate">{{ profile.email }}</dd>
-          </div>
-          <div class="flex items-center justify-between gap-4 py-2.5">
-            <dt class="text-xs font-semibold uppercase tracking-wide text-ink-soft">Location</dt>
-            <dd class="text-sm font-semibold text-right truncate">{{ profile.city }}</dd>
-          </div>
-        </dl>
-
-        <!-- edit mode -->
+        <!-- edit mode: fields + payment method -->
         <div v-else class="space-y-3">
           <div>
             <label class="block text-xs font-semibold uppercase tracking-wide text-ink-soft mb-1" for="p-name">Name</label>
@@ -191,28 +192,29 @@ onMounted(() => {
             <label class="block text-xs font-semibold uppercase tracking-wide text-ink-soft mb-1" for="p-city">Location</label>
             <input id="p-city" v-model="draft.city" class="w-full rounded-xl border border-line bg-paper px-3 py-2.5 text-sm font-medium" />
           </div>
-          <div class="flex flex-col sm:flex-row gap-2">
+
+          <!-- payment only surfaces while the bio form is open -->
+          <div class="pt-3 mt-1 border-t border-line/60">
+            <h3 class="text-xs font-semibold uppercase tracking-wide text-ink-soft mb-3">
+              {{ profile.userType === "adopter" ? "Payment method" : "Payout & donations" }}
+            </h3>
+            <div class="sm:max-w-xs">
+              <div v-if="profile.payment" class="p-4 rounded-2xl bg-gradient-to-br from-[#1E2A44] to-[#0B1626] text-white border border-line mb-3">
+                <p class="text-xs uppercase tracking-widest opacity-70 mb-4">{{ profile.userType === "adopter" ? "Adoption fees & donations" : "Receiving account" }}</p>
+                <p class="font-mono text-lg tracking-wider">•••• •••• •••• {{ profile.payment.last4 }}</p>
+                <div class="flex justify-between text-xs mt-2 opacity-80">
+                  <span>{{ profile.payment.brand }}</span><span>Exp {{ profile.payment.exp }}</span>
+                </div>
+              </div>
+            </div>
+            <p class="text-xs text-ink-faint mb-3">Demo data — a real build would tokenize via Stripe; card numbers never touch the app.</p>
+            <button class="w-full sm:w-auto px-5 py-2.5 rounded-full border border-line text-sm font-semibold text-ink-soft hover:border-ink-faint">Update payment method</button>
+          </div>
+
+          <div class="flex flex-col sm:flex-row gap-2 pt-1">
             <button class="px-5 py-2.5 rounded-full bg-brand text-white text-sm font-semibold hover:bg-brand-deep transition-colors" @click="saveEdit">Save changes</button>
             <button class="px-5 py-2.5 rounded-full border border-line text-sm font-semibold text-ink-soft hover:border-ink-faint" @click="cancelEdit">Cancel</button>
           </div>
-        </div>
-
-        <!-- payment lives with the profile now -->
-        <div class="mt-5 pt-4 border-t border-line/60">
-          <h3 class="text-xs font-semibold uppercase tracking-wide text-ink-soft mb-3">
-            {{ profile.userType === "adopter" ? "Payment method" : "Payout & donations" }}
-          </h3>
-          <div class="sm:max-w-xs">
-            <div v-if="profile.payment" class="p-4 rounded-2xl bg-gradient-to-br from-[#1E2A44] to-[#0B1626] text-white border border-line mb-3">
-              <p class="text-xs uppercase tracking-widest opacity-70 mb-4">{{ profile.userType === "adopter" ? "Adoption fees & donations" : "Receiving account" }}</p>
-              <p class="font-mono text-lg tracking-wider">•••• •••• •••• {{ profile.payment.last4 }}</p>
-              <div class="flex justify-between text-xs mt-2 opacity-80">
-                <span>{{ profile.payment.brand }}</span><span>Exp {{ profile.payment.exp }}</span>
-              </div>
-            </div>
-          </div>
-          <p class="text-xs text-ink-faint mb-3">Demo data — a real build would tokenize via Stripe; card numbers never touch the app.</p>
-          <button class="w-full sm:w-auto px-5 py-2.5 rounded-full border border-line text-sm font-semibold text-ink-soft hover:border-ink-faint">Update payment method</button>
         </div>
       </section>
 
