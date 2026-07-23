@@ -101,8 +101,8 @@ function onKey(e: KeyboardEvent) {
   if (e.key === "ArrowLeft") fling("left");
   if (e.key === "ArrowRight") fling("right");
 }
-onMounted(() => window.addEventListener("keydown", onKey));
-onUnmounted(() => window.removeEventListener("keydown", onKey));
+// VueUse binds on mount and cleans up on unmount for us
+useEventListener(window, "keydown", onKey);
 
 </script>
 

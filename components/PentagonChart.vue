@@ -28,15 +28,14 @@ function point(axisIndex: number, value: number): [number, number] {
   return [C.value + r * Math.cos(angle), C.value + r * Math.sin(angle)];
 }
 
-const poly = (t: TraitPentagon, invertTraining = false) =>
-  AXES.map((a, i) => {
-    const v = a.key === "training" && invertTraining ? 11 - t[a.key] : t[a.key];
-    return point(i, v).map((n) => n.toFixed(1)).join(",");
-  }).join(" ");
+/* Axes align directly (see scoreMatch), so overlapping shapes really do mean
+   a good fit — no per-axis inversion. */
+const poly = (t: TraitPentagon) =>
+  AXES.map((a, i) => point(i, t[a.key]).map((n) => n.toFixed(1)).join(",")).join(" ");
 
 const rings = [2.5, 5, 7.5, 10];
 const petPoly = computed(() => poly(props.pet));
-const userPoly = computed(() => (props.user ? poly(props.user, true) : ""));
+const userPoly = computed(() => (props.user ? poly(props.user) : ""));
 const labelPos = (i: number) => {
   const angle = (Math.PI * 2 * i) / 5 - Math.PI / 2;
   const r = R.value + 26;

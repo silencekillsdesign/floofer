@@ -1,7 +1,21 @@
+import { get as idbGet, set as idbSet } from "idb-keyval";
 import type { Dog, Filters, Profile, TraitPentagon } from "~/types";
 import { DOGS } from "~/data/dogs";
 
+/* Storage is split by weight: localStorage keeps the small, hot state so the
+   deck hydrates synchronously on first paint, while base64 photos (which blow
+   past the ~5MB localStorage quota) live in IndexedDB and merge in a tick later. */
 const LS_KEY = "rescue-match-v1";
+const IDB_PHOTOS_KEY = "floofer-photos-v1";
+
+interface PhotoStore {
+  homePhotos: string[];
+  petPhotos: string[];
+  dogPhotos: Record<string, string[]>;
+}
+
+const isInline = (src: string) => src.startsWith("data:");
+const withoutInline = (arr: string[] = []) => arr.filter((p) => !isInline(p));
 
 export type DataSource = "demo" | "rescuegroups" | "petfinder";
 
@@ -117,9 +131,25 @@ export function useStore() {
       }
     } catch {}
 
+    /* Photos land a tick after first paint — images load async anyway, so the
+       swipe deck never waits on them. */
+    idbGet<PhotoStore>(IDB_PHOTOS_KEY)
+      .then((ph) => {
+        if (!ph) return;
+        if (ph.homePhotos?.length) profile.value.homePhotos = ph.homePhotos;
+        if (ph.petPhotos?.length) profile.value.petPhotos = ph.petPhotos;
+        if (ph.dogPhotos) {
+          customDogs.value = customDogs.value.map((d) =>
+            ph.dogPhotos[d.id]?.length ? { ...d, photos: ph.dogPhotos[d.id] } : d,
+          );
+        }
+      })
+      .catch(() => {});
+
     watch(
       [liked, passed, adoptedOverrides, applied, profile, customDogs, dataSource],
       () => {
+        // small/hot state → localStorage, stripped of inline images
         try {
           localStorage.setItem(
             LS_KEY,
@@ -128,16 +158,32 @@ export function useStore() {
               passed: passed.value,
               adoptedOverrides: adoptedOverrides.value,
               applied: applied.value,
-              profile: profile.value,
-              customDogs: customDogs.value,
+              profile: {
+                ...profile.value,
+                homePhotos: withoutInline(profile.value.homePhotos),
+                petPhotos: withoutInline(profile.value.petPhotos),
+              },
+              customDogs: customDogs.value.map((d) => ({ ...d, photos: withoutInline(d.photos) })),
               dataSource: dataSource.value,
             } satisfies Persisted),
           );
         } catch (e) {
-          // photo-heavy listings can exceed the localStorage quota — keep the
-          // app running; state just won't survive a reload
           console.warn("[floofer] persist failed (storage quota?)", e);
         }
+
+        /* Heavy base64 images → IndexedDB. Spread into plain arrays first:
+           IndexedDB structured-clones its input and cannot clone Vue's
+           reactive Proxy objects. */
+        const photos: PhotoStore = {
+          homePhotos: [...(profile.value.homePhotos ?? [])],
+          petPhotos: [...(profile.value.petPhotos ?? [])],
+          dogPhotos: Object.fromEntries(
+            customDogs.value.map((d) => [d.id, [...(d.photos ?? [])]]),
+          ),
+        };
+        idbSet(IDB_PHOTOS_KEY, photos).catch((e) =>
+          console.warn("[floofer] photo persist failed", e),
+        );
       },
       { deep: true },
     );
@@ -229,15 +275,16 @@ export function lifeStage(d: Dog): string {
   return "Senior";
 }
 
-/** Pentagon match: per-axis closeness between what the dog needs and what the home offers.
-    `training` is inverted — a high-needs dog wants a high-experience handler. */
+/** Pentagon match: per-axis closeness between what the dog needs and what the
+    home offers. Every axis aligns directly — including `training`, where the
+    pet scale runs turnkey→project and the user scale runs first-timer→pro, so
+    a project dog belongs with an experienced handler. */
 export function scoreMatch(pet: TraitPentagon, user: TraitPentagon): number {
   const axes: (keyof TraitPentagon)[] = ["energy", "space", "social", "independence", "training"];
-  const total = axes.reduce((sum, axis) => {
-    const petVal = pet[axis];
-    const userVal = axis === "training" ? 11 - user[axis] : user[axis];
-    return sum + (1 - Math.abs(petVal - userVal) / 9);
-  }, 0);
+  const total = axes.reduce(
+    (sum, axis) => sum + (1 - Math.abs(pet[axis] - user[axis]) / 9),
+    0,
+  );
   return Math.round((total / axes.length) * 100);
 }
 
