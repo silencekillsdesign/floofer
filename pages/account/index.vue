@@ -129,47 +129,6 @@ onMounted(() => {
     </div>
 
     <div class="grid md:grid-cols-2 gap-5">
-      <!-- ==== Data source (all types) ==== -->
-      <section class="min-w-0 p-5 bg-card rounded-3xl shadow-card border border-line md:col-span-2">
-        <h2 class="font-display text-lg font-semibold mb-1">Data source</h2>
-        <p class="text-xs text-ink-soft mb-3">
-          Live modes pull adoptable dogs within 50 miles of Chicago. RescueGroups includes real euthanasia-risk data; Petfinder has the largest inventory (at-risk = long-stay listings).
-        </p>
-        <div class="flex flex-col sm:flex-row gap-2 max-w-xl">
-          <button
-            v-for="opt in sourceOptions"
-            :key="opt.v"
-            class="flex-1 py-2.5 px-3 rounded-xl text-sm font-semibold border transition-colors"
-            :class="dataSource === opt.v ? 'bg-brand text-white border-brand' : 'bg-card border-line text-ink-soft hover:border-ink-faint'"
-            @click="dataSource = opt.v"
-          >{{ opt.label }}</button>
-        </div>
-        <div v-if="dataSource !== 'demo'" class="mt-3 text-sm">
-          <p v-if="liveStatus === 'loading'" class="text-ink-soft">⏳ Fetching adoptable dogs near Chicago…</p>
-          <p v-else-if="liveStatus === 'ready'" class="text-safe font-semibold">
-            ✓ {{ liveDogs.length }} real adoptable dogs loaded<span v-if="liveRiskCount"> · <span class="text-risk">{{ liveRiskCount }} flagged at-risk</span></span>
-          </p>
-          <div v-else-if="liveStatus === 'error'" class="p-3 rounded-xl bg-risk-soft border border-risk/25">
-            <p class="font-semibold text-risk text-xs">{{ liveError }}</p>
-            <p class="text-xs text-ink-soft mt-1">
-              Showing demo dogs meanwhile.
-              <template v-if="dataSource === 'petfinder'">
-                Get free credentials at
-                <a href="https://www.petfinder.com/developers/" target="_blank" rel="noopener" class="text-brand font-semibold underline">petfinder.com/developers</a>
-                — instant signup, then set <code class="font-mono">NUXT_PETFINDER_API_KEY</code> and <code class="font-mono">NUXT_PETFINDER_SECRET</code> in <code class="font-mono">.env</code>,
-              </template>
-              <template v-else>
-                Get a free key at
-                <a href="https://rescuegroups.org/services/adoptable-pet-data-api/" target="_blank" rel="noopener" class="text-brand font-semibold underline">rescuegroups.org</a>
-                and set <code class="font-mono">NUXT_RESCUEGROUPS_API_KEY</code> in <code class="font-mono">.env</code>,
-              </template>
-              restart the dev server, then
-              <button class="text-brand font-semibold underline" @click="loadLive(true)">retry</button>.
-            </p>
-          </div>
-        </div>
-      </section>
-
       <!-- ==== Personal info + payment (all types) ==== -->
       <section class="min-w-0 p-5 bg-card rounded-3xl shadow-card border border-line md:col-span-2">
         <div class="flex flex-wrap items-center justify-between gap-2 mb-3">
@@ -241,6 +200,55 @@ onMounted(() => {
             </div>
             <p class="text-xs text-ink-faint mb-3">Demo data — a real build would tokenize via Stripe; card numbers never touch the app.</p>
             <button class="w-full sm:w-auto px-5 py-2.5 rounded-full border border-line text-sm font-semibold text-ink-soft hover:border-ink-faint">Update payment method</button>
+          </div>
+
+          <!-- documents live here too, so the resting card stays clean -->
+          <div class="pt-3 mt-1 border-t border-line/60">
+            <div class="flex flex-wrap items-center justify-between gap-2 mb-2">
+              <h3 class="text-xs font-semibold uppercase tracking-wide text-ink-soft">
+                {{ profile.userType === "adopter" ? "My documents" : "Pet records" }}
+              </h3>
+              <button class="px-4 py-2 rounded-full bg-brand text-white text-xs font-semibold hover:bg-brand-deep" @click="docInput?.click()">+ Upload</button>
+            </div>
+            <p v-if="profile.userType === 'adopter'" class="text-xs text-ink-faint mb-3">
+              Landlord consent, pet-deposit receipts, vaccination records — anything a rescue might ask for during approval.
+            </p>
+
+            <div class="relative mb-2">
+              <svg viewBox="0 0 24 24" class="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-ink-faint pointer-events-none" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round"><circle cx="11" cy="11" r="7"/><path d="m20 20-3.8-3.8"/></svg>
+              <input
+                v-model="docQuery"
+                type="text"
+                placeholder="Search documents…"
+                class="w-full rounded-xl border border-line bg-paper pl-9 pr-3 py-2 text-sm font-medium focus:outline-none focus:border-brand focus:ring-[3px] focus:ring-brand/25"
+                aria-label="Search documents"
+              />
+            </div>
+
+            <ul class="divide-y divide-line/60">
+              <li v-for="r in filteredDocs" :key="r.name + r.date" class="py-2.5 flex items-center justify-between gap-3">
+                <div class="flex items-center gap-2.5 min-w-0">
+                  <span class="text-lg shrink-0" aria-hidden="true">📄</span>
+                  <div class="min-w-0">
+                    <p class="text-sm font-semibold truncate">{{ r.name }}</p>
+                    <p class="text-xs text-ink-faint">{{ r.date }} · {{ r.size }}</p>
+                  </div>
+                </div>
+                <div class="flex items-center gap-3 shrink-0">
+                  <button class="text-xs font-semibold text-brand hover:underline">Download</button>
+                  <button
+                    v-if="!r.builtin"
+                    class="text-xs font-semibold text-ink-faint hover:text-risk"
+                    :aria-label="`Remove ${r.name}`"
+                    @click="removeDoc(r)"
+                  >Remove</button>
+                </div>
+              </li>
+              <li v-if="!filteredDocs.length" class="py-6 text-center text-sm text-ink-soft">
+                {{ docQuery ? `No documents matching “${docQuery}”` : "No documents yet — upload your first above." }}
+              </li>
+            </ul>
+            <input ref="docInput" type="file" multiple class="hidden" @change="onDocPick" />
           </div>
 
           <div class="flex flex-col sm:flex-row gap-2 pt-1">
@@ -354,54 +362,6 @@ onMounted(() => {
       <!-- ==== Adoption profile (adopter) ==== -->
       <AdoptionProfile v-if="profile.userType === 'adopter'" />
 
-      <!-- ==== Documents ==== -->
-      <section class="min-w-0 p-5 bg-card rounded-3xl shadow-card border border-line" :class="profile.userType === 'adopter' ? '' : 'md:col-span-2'">
-        <div class="flex flex-wrap items-center justify-between gap-2 mb-2">
-          <h2 class="font-display text-lg font-semibold">{{ profile.userType === "adopter" ? "My documents" : "Pet records" }}</h2>
-          <button class="px-4 py-2 rounded-full bg-brand text-white text-sm font-semibold hover:bg-brand-deep" @click="docInput?.click()">+ Upload</button>
-        </div>
-        <p v-if="profile.userType === 'adopter'" class="text-xs text-ink-soft mb-3">
-          Landlord consent, pet-deposit receipts, vaccination records — anything a rescue might ask for during approval.
-        </p>
-
-        <!-- search -->
-        <div class="relative mb-2">
-          <svg viewBox="0 0 24 24" class="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-ink-faint pointer-events-none" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round"><circle cx="11" cy="11" r="7"/><path d="m20 20-3.8-3.8"/></svg>
-          <input
-            v-model="docQuery"
-            type="text"
-            placeholder="Search documents…"
-            class="w-full rounded-xl border border-line bg-paper pl-9 pr-3 py-2 text-sm font-medium focus:outline-none focus:border-brand focus:ring-[3px] focus:ring-brand/25"
-            aria-label="Search documents"
-          />
-        </div>
-
-        <ul class="divide-y divide-line/60">
-          <li v-for="r in filteredDocs" :key="r.name + r.date" class="py-2.5 flex items-center justify-between gap-3">
-            <div class="flex items-center gap-2.5 min-w-0">
-              <span class="text-lg shrink-0" aria-hidden="true">📄</span>
-              <div class="min-w-0">
-                <p class="text-sm font-semibold truncate">{{ r.name }}</p>
-                <p class="text-xs text-ink-faint">{{ r.date }} · {{ r.size }}</p>
-              </div>
-            </div>
-            <div class="flex items-center gap-3 shrink-0">
-              <button class="text-xs font-semibold text-brand hover:underline">Download</button>
-              <button
-                v-if="!r.builtin"
-                class="text-xs font-semibold text-ink-faint hover:text-risk"
-                :aria-label="`Remove ${r.name}`"
-                @click="removeDoc(r)"
-              >Remove</button>
-            </div>
-          </li>
-          <li v-if="!filteredDocs.length" class="py-6 text-center text-sm text-ink-soft">
-            {{ docQuery ? `No documents matching “${docQuery}”` : "No documents yet — upload your first above." }}
-          </li>
-        </ul>
-        <input ref="docInput" type="file" multiple class="hidden" @change="onDocPick" />
-      </section>
-
       <!-- ==== Adopter: photo gallery placeholder ==== -->
       <section v-if="profile.userType === 'adopter'" class="min-w-0 p-5 bg-card rounded-3xl shadow-card border border-line">
         <h2 class="font-display text-lg font-semibold mb-1">Home photos</h2>
@@ -414,6 +374,46 @@ onMounted(() => {
         <h2 class="font-display text-lg font-semibold mb-1">Pet photos</h2>
         <p class="text-xs text-ink-soft mb-3">Pets already living with you. Rescues check these when assessing whether a dog will get along with your crew.</p>
         <PhotoUploader v-model="profile.petPhotos" :max="6" :show-primary="false" />
+      </section>
+      <!-- ==== Data source (all types) ==== -->
+      <section class="min-w-0 p-5 bg-card rounded-3xl shadow-card border border-line md:col-span-2">
+        <h2 class="font-display text-lg font-semibold mb-1">Data source</h2>
+        <p class="text-xs text-ink-soft mb-3">
+          Live modes pull adoptable dogs within 50 miles of Chicago. RescueGroups includes real euthanasia-risk data; Petfinder has the largest inventory (at-risk = long-stay listings).
+        </p>
+        <div class="flex flex-col sm:flex-row gap-2 max-w-xl">
+          <button
+            v-for="opt in sourceOptions"
+            :key="opt.v"
+            class="flex-1 py-2.5 px-3 rounded-xl text-sm font-semibold border transition-colors"
+            :class="dataSource === opt.v ? 'bg-brand text-white border-brand' : 'bg-card border-line text-ink-soft hover:border-ink-faint'"
+            @click="dataSource = opt.v"
+          >{{ opt.label }}</button>
+        </div>
+        <div v-if="dataSource !== 'demo'" class="mt-3 text-sm">
+          <p v-if="liveStatus === 'loading'" class="text-ink-soft">⏳ Fetching adoptable dogs near Chicago…</p>
+          <p v-else-if="liveStatus === 'ready'" class="text-safe font-semibold">
+            ✓ {{ liveDogs.length }} real adoptable dogs loaded<span v-if="liveRiskCount"> · <span class="text-risk">{{ liveRiskCount }} flagged at-risk</span></span>
+          </p>
+          <div v-else-if="liveStatus === 'error'" class="p-3 rounded-xl bg-risk-soft border border-risk/25">
+            <p class="font-semibold text-risk text-xs">{{ liveError }}</p>
+            <p class="text-xs text-ink-soft mt-1">
+              Showing demo dogs meanwhile.
+              <template v-if="dataSource === 'petfinder'">
+                Get free credentials at
+                <a href="https://www.petfinder.com/developers/" target="_blank" rel="noopener" class="text-brand font-semibold underline">petfinder.com/developers</a>
+                — instant signup, then set <code class="font-mono">NUXT_PETFINDER_API_KEY</code> and <code class="font-mono">NUXT_PETFINDER_SECRET</code> in <code class="font-mono">.env</code>,
+              </template>
+              <template v-else>
+                Get a free key at
+                <a href="https://rescuegroups.org/services/adoptable-pet-data-api/" target="_blank" rel="noopener" class="text-brand font-semibold underline">rescuegroups.org</a>
+                and set <code class="font-mono">NUXT_RESCUEGROUPS_API_KEY</code> in <code class="font-mono">.env</code>,
+              </template>
+              restart the dev server, then
+              <button class="text-brand font-semibold underline" @click="loadLive(true)">retry</button>.
+            </p>
+          </div>
+        </div>
       </section>
     </div>
   </div>
