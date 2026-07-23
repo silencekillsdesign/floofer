@@ -163,8 +163,32 @@ const compatTags = computed(() => {
       >
         <svg viewBox="0 0 24 24" class="w-5 h-5" fill="none" stroke="currentColor" stroke-width="2.6" stroke-linecap="round" stroke-linejoin="round"><path d="M15 5l-7 7 7 7"/></svg>
       </button>
-      <div class="absolute top-4 left-16"><RiskBadge :dog="dog" detailed /></div>
-      <ClientOnly><div class="absolute top-3 right-3"><MatchRing :pct="matchPct(dog)" :size="60" /></div></ClientOnly>
+      <!-- risk status sits where the match ring used to; the countdown speaks
+           for itself, so no "at risk" wording -->
+      <div class="absolute top-3 right-3">
+        <div
+          v-if="dog.adopted"
+          class="px-3.5 py-2 rounded-full bg-black/60 backdrop-blur text-white text-xs font-bold"
+        >🎉 Adopted</div>
+        <div
+          v-else-if="dog.risk === 'high' && dog.daysLeft != null"
+          class="w-[60px] h-[60px] flex flex-col items-center justify-center rounded-full bg-risk text-white shadow-pop ring-4 ring-risk/30"
+          :aria-label="`${dog.daysLeft} days to placement deadline`"
+          :title="`${dog.daysLeft} days to placement deadline`"
+        >
+          <span class="text-2xl font-extrabold leading-none">{{ dog.daysLeft }}</span>
+          <span class="text-[10px] font-bold uppercase tracking-wide leading-none mt-0.5">days</span>
+        </div>
+        <div
+          v-else-if="dog.risk === 'high'"
+          class="px-3.5 py-2 rounded-full bg-risk text-white text-xs font-bold shadow-pop"
+          title="Placement deadline pending"
+        >⚠</div>
+        <div
+          v-else
+          class="px-3.5 py-2 rounded-full bg-safe-soft text-safe text-xs font-bold"
+        >✓ Safe</div>
+      </div>
       <button
         class="absolute bottom-3 right-3 w-10 h-10 grid place-items-center rounded-full bg-black/40 backdrop-blur text-white hover:bg-grape transition-colors"
         :aria-label="`Share ${dog.name}'s profile`" title="Share"
