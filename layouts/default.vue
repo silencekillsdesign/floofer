@@ -51,16 +51,22 @@ const isActive = (to: string) => (to === "/" ? route.path === "/" : route.path.s
             <svg viewBox="0 0 24 24" class="w-6 h-6" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round"><path d="M4 7h10m4 0h2M4 7a2 2 0 1 0 4 0 2 2 0 0 0-4 0m14 10H8m-4 0h2m12 0a2 2 0 1 0 4 0 2 2 0 0 0-4 0"/></svg>
           </button>
 
-          <!-- theme toggle -->
-          <button
-            class="w-9 h-9 grid place-items-center rounded-full text-brand hover:bg-paper-warm transition-colors"
-            :aria-label="theme === 'dark' ? 'Switch to light mode' : 'Switch to dark mode'"
-            :title="theme === 'dark' ? 'Light mode' : 'Dark mode'"
-            @click="toggle"
-          >
-            <svg v-if="theme === 'dark'" viewBox="0 0 24 24" class="w-6 h-6" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round"><circle cx="12" cy="12" r="4.5"/><path d="M12 2.5v2m0 15v2m9.5-9.5h-2m-15 0h-2m16.2-6.7-1.4 1.4M6.7 17.3l-1.4 1.4m0-13.4 1.4 1.4m10.6 10.6 1.4 1.4"/></svg>
-            <svg v-else viewBox="0 0 24 24" class="w-6 h-6" fill="currentColor"><path d="M21 14.5A8.5 8.5 0 0 1 9.5 3 8.5 8.5 0 1 0 21 14.5z"/></svg>
-          </button>
+          <!-- theme toggle — client-only: the server can't know the stored
+               preference, and rendering the wrong icon breaks hydration -->
+          <ClientOnly>
+            <button
+              class="w-9 h-9 grid place-items-center rounded-full text-brand hover:bg-paper-warm transition-colors"
+              :aria-label="theme === 'dark' ? 'Switch to light mode' : 'Switch to dark mode'"
+              :title="theme === 'dark' ? 'Light mode' : 'Dark mode'"
+              @click="toggle"
+            >
+              <svg v-if="theme === 'dark'" viewBox="0 0 24 24" class="w-6 h-6" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round"><circle cx="12" cy="12" r="4.5"/><path d="M12 2.5v2m0 15v2m9.5-9.5h-2m-15 0h-2m16.2-6.7-1.4 1.4M6.7 17.3l-1.4 1.4m0-13.4 1.4 1.4m10.6 10.6 1.4 1.4"/></svg>
+              <svg v-else viewBox="0 0 24 24" class="w-6 h-6" fill="currentColor"><path d="M21 14.5A8.5 8.5 0 0 1 9.5 3 8.5 8.5 0 1 0 21 14.5z"/></svg>
+            </button>
+            <template #fallback>
+              <span class="w-9 h-9 block" aria-hidden="true" />
+            </template>
+          </ClientOnly>
 
           <!-- settings (mobile) -->
           <NuxtLink to="/account" class="sm:hidden w-9 h-9 grid place-items-center rounded-full text-brand hover:bg-paper-warm" aria-label="Account settings">

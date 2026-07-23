@@ -111,6 +111,15 @@ export default defineNuxtConfig({
             "Tinder for pet adoption. Rescue Match connects adopters with dogs at the highest risk of euthanization from shelters, fosters, homes, and retirement communities.",
         },
       ],
+      script: [
+        {
+          /* Apply the saved theme before first paint. Without this, SSR always
+             ships dark markup and light-mode users get a dark flash. */
+          innerHTML:
+            "try{if(localStorage.getItem('rm-theme')==='light')document.documentElement.classList.add('light')}catch(e){}",
+          tagPosition: "head",
+        },
+      ],
       link: [
         { rel: "preconnect", href: "https://fonts.googleapis.com" },
         { rel: "preconnect", href: "https://fonts.gstatic.com", crossorigin: "" },
