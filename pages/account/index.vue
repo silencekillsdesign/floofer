@@ -5,11 +5,18 @@ const { dogs, profile, matchPct, toggleAdopted, dataSource, liveStatus, liveErro
 
 const liveRiskCount = computed(() => liveDogs.value.filter((d) => d.risk === "high").length);
 
-const sourceOptions: { v: "demo" | "rescuegroups" | "petfinder"; label: string }[] = [
-  { v: "demo", label: "🧸 Demo dogs" },
-  { v: "rescuegroups", label: "🚨 RescueGroups.org" },
-  { v: "petfinder", label: "🐾 Petfinder" },
-];
+const db = useDb();
+
+/* Our own database only appears once it's actually connected — offering a
+   source that can't load would just be a button that always errors. */
+const sourceOptions = computed(() =>
+  [
+    { v: "demo" as const, label: "🧸 Demo dogs" },
+    ...(db.configured.value ? [{ v: "floofer" as const, label: "💙 Floofer shelters" }] : []),
+    { v: "rescuegroups" as const, label: "🚨 RescueGroups.org" },
+    { v: "petfinder" as const, label: "🐾 Petfinder" },
+  ],
+);
 
 const userTypes: { v: UserType; label: string; icon: string; blurb: string }[] = [
   { v: "adopter", label: "Adopter", icon: "🏠", blurb: "Looking to adopt" },
@@ -380,7 +387,9 @@ onMounted(() => {
       <section class="min-w-0 p-5 bg-card rounded-3xl shadow-card border border-line md:col-span-2">
         <h2 class="font-display text-lg font-semibold mb-1">Data source</h2>
         <p class="text-xs text-ink-soft mb-3">
-          Live modes pull adoptable dogs within 50 miles of Chicago. RescueGroups includes real euthanasia-risk data; Petfinder has the largest inventory (at-risk = long-stay listings).
+          Floofer shelters are pilot partners listing directly in the app — the only source where a
+          countdown is a real deadline a shelter set, not an inference. RescueGroups includes
+          euthanasia-risk data; Petfinder has the largest inventory (at-risk = long-stay listings).
         </p>
         <div class="flex flex-col sm:flex-row gap-2 max-w-xl">
           <button

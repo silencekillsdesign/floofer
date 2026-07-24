@@ -1,5 +1,5 @@
 import { describe, it, expect } from "vitest";
-import { daysUntil, photoUrlFor, mapDogRow } from "~/utils/dogMapper";
+import { daysUntil, photoUrlFor, mapDogRow, todayLocalISO } from "~/utils/dogMapper";
 import type { DogRow } from "~/types/db";
 
 const at = (iso: string) => new Date(`${iso}T00:00:00Z`);
@@ -30,6 +30,21 @@ describe("daysUntil", () => {
 
   it("rejects a malformed date rather than inventing a number", () => {
     expect(Number.isNaN(daysUntil("not-a-date"))).toBe(true);
+  });
+});
+
+describe("todayLocalISO", () => {
+  /* The bug this exists to prevent: west of Greenwich, toISOString() rolls
+     over to tomorrow during the evening, so a shelter setting a deadline at
+     8pm would be told today is already in the past. */
+  it("uses the local calendar date, not the UTC one", () => {
+    const eveningChicago = new Date("2026-07-23T20:30:00-05:00"); // 01:30Z on the 24th
+    expect(eveningChicago.toISOString().slice(0, 10)).toBe("2026-07-24"); // the trap
+    expect(todayLocalISO(eveningChicago)).toBe("2026-07-23");
+  });
+
+  it("zero-pads months and days", () => {
+    expect(todayLocalISO(new Date(2026, 0, 5))).toBe("2026-01-05");
   });
 });
 

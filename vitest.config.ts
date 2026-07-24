@@ -13,5 +13,10 @@ export default defineConfig({
   test: {
     environment: "node",
     include: ["test/**/*.spec.ts"],
+    /* Pinned so the risk-deadline tests mean the same thing everywhere. Left
+       unset they pass on a Chicago laptop and fail on a UTC CI box — and the
+       whole point of those tests is that a euthanasia countdown must not
+       depend on where it's read. */
+    env: { TZ: "America/Chicago" },
   },
 });

@@ -18,6 +18,15 @@ export function daysUntil(isoDate: string, now = new Date()): number {
   return Math.round((target - today) / MS_PER_DAY);
 }
 
+/** Today as `YYYY-MM-DD` in the viewer's own timezone.
+    `toISOString()` would return the UTC date — west of Greenwich that flips
+    to tomorrow during the evening, so a shelter working late would be blocked
+    from setting a deadline of today. */
+export function todayLocalISO(now = new Date()): string {
+  const pad = (n: number) => String(n).padStart(2, "0");
+  return `${now.getFullYear()}-${pad(now.getMonth() + 1)}-${pad(now.getDate())}`;
+}
+
 /** Public storage URL for a `pet-photos` object path. */
 export function photoUrlFor(supabaseUrl: string, path: string): string {
   if (/^https?:\/\//.test(path)) return path; // already absolute (seeded/demo rows)

@@ -9,11 +9,26 @@ const secondaryBreedOptions = [{ value: "", label: "Not sure / none" }, ...breed
 
 const router = useRouter();
 const { profile, addDog } = useStore();
+const db = useDb();
 
-/* Orgs list pets; adopters get redirected to browse. */
-if (profile.value.userType === "adopter") {
-  navigateTo("/account");
-}
+/* Bound to the deadline input's `min` so a shelter can't set a date already
+   in the past. Client-only to avoid an SSR/hydration date mismatch. */
+const today = ref("");
+onMounted(() => (today.value = todayLocalISO()));
+
+const saving = ref(false);
+
+/* Orgs list pets; adopters get redirected to browse.
+   Deferred to the client and gated on `hydrated`: the server has no idea who
+   you are, so profile is always the default "adopter" during SSR — checking
+   there bounced every shelter that loaded this URL directly rather than
+   clicking through from the account page. */
+const { hydrated } = useStore();
+watchEffect(() => {
+  if (import.meta.client && hydrated.value && profile.value.userType === "adopter") {
+    navigateTo("/account");
+  }
+});
 
 const form = reactive({
   // 1 — core
@@ -49,7 +64,9 @@ const form = reactive({
   adoptionFee: 250,
   atRisk: false,
   riskReason: "",
-  daysLeft: 14,
+  /* A date, not a day count: shelters know "his hold expires Aug 1", and a
+     stored countdown silently rots the moment nobody re-edits it. */
+  riskReviewDate: "",
   // matching pentagon
   traits: { energy: 5, space: 5, social: 5, independence: 5, training: 5 } as TraitPentagon,
 });
@@ -82,7 +99,7 @@ function clearVideo() {
   videoFileName.value = "";
 }
 
-function submit() {
+async function submit() {
   errors.value = [];
   if (!form.name.trim()) errors.value.push("Name is required.");
   if (!form.breed.trim()) errors.value.push("Primary breed is required.");
@@ -96,6 +113,56 @@ function submit() {
   }
 
   const loc = CITY_OPTIONS.find((c) => c.city === form.city) ?? CITY_OPTIONS[0];
+
+  /* Real backend: persist so other devices and adopters actually see it. */
+  if (db.configured.value) {
+    saving.value = true;
+    try {
+      const newId = await db.createDog({
+        name: form.name.trim(),
+        species: "dog",
+        breed: form.breed.trim(),
+        secondary_breed: form.secondaryBreed.trim() || null,
+        age: form.age,
+        sex: form.sex,
+        size: form.size,
+        weight_lbs: form.weightLbs,
+        good_with_dogs: form.goodWithDogs,
+        good_with_cats: form.goodWithCats,
+        good_with_kids: form.goodWithKids,
+        house_trained: form.houseTrained,
+        crate_trained: form.crateTrained,
+        traits: { ...form.traits },
+        spay_neuter: form.spayNeuter,
+        vaccinated: form.vaccinated,
+        microchipped: form.microchipped,
+        medical_notes: form.medicalNotes.trim() || null,
+        tagline: form.tagline.trim(),
+        bio: form.bio.trim(),
+        quirks: form.quirks.trim() || null,
+        background: form.background.trim() || null,
+        ideal_home: form.idealHome.trim() || null,
+        city: loc.city,
+        lat: loc.lat,
+        lng: loc.lng,
+        adoption_fee: form.adoptionFee,
+        risk: form.atRisk ? "high" : "safe",
+        risk_reason: form.atRisk ? form.riskReason.trim() : null,
+        risk_review_date: form.atRisk && form.riskReviewDate ? form.riskReviewDate : null,
+        status: "available",
+      });
+      await db.uploadDogPhotos(newId, form.photos.slice(0, 8));
+      await router.push(`/pet/${newId}`);
+    } catch (e: any) {
+      errors.value = [e?.message ?? "Could not save this listing."];
+      document.querySelector("#form-errors")?.scrollIntoView({ block: "center" });
+    } finally {
+      saving.value = false;
+    }
+    return;
+  }
+
+  /* No backend (demo build): keep the existing local-only behaviour. */
   const id = `${form.name.toLowerCase().replace(/[^a-z0-9]+/g, "-")}-${Date.now().toString(36)}`;
 
   const dog: Dog = {
@@ -133,7 +200,11 @@ function submit() {
     adoptionFee: form.adoptionFee,
     risk: form.atRisk ? "high" : "safe",
     riskReason: form.atRisk ? form.riskReason.trim() : undefined,
-    daysLeft: form.atRisk ? form.daysLeft : undefined,
+    /* Same derivation the DB path uses, so demo and live cards read alike. */
+    daysLeft:
+      form.atRisk && form.riskReviewDate
+        ? Math.max(0, daysUntil(form.riskReviewDate))
+        : undefined,
   };
 
   addDog(dog);
@@ -368,16 +439,23 @@ const segCls = (active: boolean) =>
           </label>
           <div v-if="form.atRisk" class="grid grid-cols-1 sm:grid-cols-[1fr,140px] gap-3 mt-3">
             <div><label :class="labelCls" for="f-riskwhy">Reason (shown to adopters) *</label><input id="f-riskwhy" v-model="form.riskReason" :class="inputCls" placeholder="e.g. Shelter over capacity — transfer list" /></div>
-            <div><label :class="labelCls" for="f-days">Days left</label><input id="f-days" v-model.number="form.daysLeft" type="number" min="1" max="90" :class="inputCls" /></div>
+            <div>
+              <label :class="labelCls" for="f-deadline">Deadline</label>
+              <input id="f-deadline" v-model="form.riskReviewDate" type="date" :min="today" :class="inputCls" />
+            </div>
           </div>
         </div>
       </section>
 
       <div class="flex flex-col sm:flex-row gap-3">
-        <button class="flex-1 py-3.5 rounded-full bg-brand text-white font-semibold shadow-glow hover:bg-brand-deep transition-colors" @click="submit">
-          Publish listing 🐾
+        <button
+          :disabled="saving"
+          class="flex-1 py-3.5 rounded-full bg-brand text-white font-semibold shadow-glow hover:bg-brand-deep transition-colors disabled:opacity-50 disabled:shadow-none"
+          @click="submit"
+        >
+          {{ saving ? "Uploading photos…" : "Publish listing 🐾" }}
         </button>
-        <button class="py-3.5 px-6 rounded-full border border-line text-sm font-semibold text-ink-soft hover:border-ink-faint" @click="router.back()">Cancel</button>
+        <button :disabled="saving" class="py-3.5 px-6 rounded-full border border-line text-sm font-semibold text-ink-soft hover:border-ink-faint disabled:opacity-50" @click="router.back()">Cancel</button>
       </div>
     </div>
   </div>

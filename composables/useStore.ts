@@ -17,9 +17,12 @@ interface PhotoStore {
 const isInline = (src: string) => src.startsWith("data:");
 const withoutInline = (arr: string[] = []) => arr.filter((p) => !isInline(p));
 
-export type DataSource = "demo" | "rescuegroups" | "petfinder";
+/* `floofer` is our own database — dogs listed by pilot shelters through the
+   app. Unlike the aggregators it carries a real, shelter-set risk deadline,
+   so it's the only source where a countdown means what it says. */
+export type DataSource = "demo" | "floofer" | "rescuegroups" | "petfinder";
 
-const SOURCE_ENDPOINTS: Record<Exclude<DataSource, "demo">, string> = {
+const SOURCE_ENDPOINTS: Record<Exclude<DataSource, "demo" | "floofer">, string> = {
   rescuegroups: "/api/animals",
   petfinder: "/api/petfinder",
 };
@@ -102,14 +105,20 @@ export function useStore() {
     liveStatus.value = "loading";
     liveError.value = "";
     try {
-      liveDogs.value = await $fetch<Dog[]>(SOURCE_ENDPOINTS[src]);
+      /* Our own DB is queried directly through the Supabase client (RLS does
+         the filtering); the aggregators go through Nitro proxies that keep
+         their API keys server-side. */
+      liveDogs.value =
+        src === "floofer"
+          ? await useDb().fetchDogs()
+          : await $fetch<Dog[]>(SOURCE_ENDPOINTS[src]);
       liveStatus.value = "ready";
       liveLoadedFor.value = src;
     } catch (e: any) {
       liveStatus.value = "error";
       liveLoadedFor.value = "";
       liveError.value =
-        e?.data?.statusMessage || e?.statusMessage ||
+        e?.data?.statusMessage || e?.statusMessage || e?.message ||
         (src === "petfinder" ? "Could not reach Petfinder." : "Could not reach RescueGroups.org.");
     }
   }
