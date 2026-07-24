@@ -183,11 +183,10 @@ const inputCls =
     <div v-if="open" class="fixed inset-0 z-[70] bg-paper flex flex-col" role="dialog" aria-modal="true" aria-label="Welcome to Floofer">
       <!-- progress -->
       <div class="shrink-0 px-5 pt-4" style="padding-top: max(1rem, env(safe-area-inset-top))">
-        <div class="flex items-center justify-between mb-2">
+        <div class="mb-2">
           <span class="text-[11px] font-bold uppercase tracking-wide text-ink-faint">
             Step {{ step + 1 }} of {{ STEPS.length }}
           </span>
-          <button class="text-[12px] font-semibold text-ink-faint hover:text-ink" @click="finish">Skip for now</button>
         </div>
         <div class="h-1.5 rounded-full bg-paper-warm overflow-hidden">
           <div class="h-full rounded-full bg-brand transition-[width] duration-300" :style="{ width: `${pct}%` }" />
@@ -350,17 +349,24 @@ const inputCls =
       </div>
 
       <!-- footer -->
-      <div class="shrink-0 border-t border-line bg-paper px-5 py-4 flex items-center gap-3" style="padding-bottom: max(1rem, env(safe-area-inset-bottom))">
+      <div class="shrink-0 border-t border-line bg-paper px-5 py-4" style="padding-bottom: max(1rem, env(safe-area-inset-bottom))">
+        <div class="flex items-center gap-3">
+          <button
+            v-if="step > 0"
+            class="px-5 py-3 rounded-full border border-line bg-card text-sm font-semibold text-ink-soft hover:border-ink-faint"
+            @click="step -= 1"
+          >Back</button>
+          <button
+            class="flex-1 px-5 py-3 rounded-full bg-brand text-white text-sm font-bold shadow-glow hover:bg-brand-deep disabled:opacity-40 disabled:shadow-none"
+            :disabled="!canAdvance"
+            @click="next"
+          >{{ step === STEPS.length - 1 ? "Start swiping" : "Continue" }}</button>
+        </div>
+        <!-- secondary to Continue, so the primary path stays the obvious one -->
         <button
-          v-if="step > 0"
-          class="px-5 py-3 rounded-full border border-line bg-card text-sm font-semibold text-ink-soft hover:border-ink-faint"
-          @click="step -= 1"
-        >Back</button>
-        <button
-          class="flex-1 px-5 py-3 rounded-full bg-brand text-white text-sm font-bold shadow-glow hover:bg-brand-deep disabled:opacity-40 disabled:shadow-none"
-          :disabled="!canAdvance"
-          @click="next"
-        >{{ step === STEPS.length - 1 ? "Start swiping" : "Continue" }}</button>
+          class="w-full mt-2.5 py-2 text-[13px] font-semibold text-ink-faint hover:text-ink"
+          @click="finish"
+        >Skip for now</button>
       </div>
     </div>
   </Teleport>

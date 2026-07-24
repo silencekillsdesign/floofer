@@ -3,12 +3,21 @@
    and rotate volunteers, and a link to a work inbox is both lower friction
    and one less credential to leak. */
 const { configured, client, user } = useDb();
+const { dataSource } = useStore();
 const route = useRoute();
 
 const email = ref("");
 const sent = ref(false);
 const busy = ref(false);
 const error = ref("");
+
+/* Escape hatch: browse the sample dogs with no account at all. Without this
+   the login screen is a dead end for anyone who just wants to look around —
+   and demo mode is how the app is shown off. */
+function browseDemo() {
+  dataSource.value = "demo";
+  navigateTo("/");
+}
 
 /* Where to land after the link is clicked. Only same-origin relative paths —
    an open redirect here would let a crafted "sign in to Floofer" link bounce
@@ -112,6 +121,18 @@ useSeoMeta({ title: "Sign in — Floofer", robots: "noindex" });
           <NuxtLink to="/privacy" class="text-brand font-semibold underline">privacy notice</NuxtLink>.
         </p>
       </form>
+
+      <!-- Always available, in every state above: nobody should hit this screen
+           and find no way onward without an account. -->
+      <div class="mt-7 pt-6 border-t border-line/60">
+        <button
+          class="w-full px-5 py-3 rounded-full border border-line bg-card text-sm font-bold text-ink hover:border-ink-faint transition-colors"
+          @click="browseDemo"
+        >🧸 Explore in demo mode</button>
+        <p class="text-[12px] text-ink-faint leading-relaxed text-center mt-2">
+          Sample dogs, no account, nothing saved to our servers.
+        </p>
+      </div>
     </div>
   </div>
 </template>
