@@ -112,6 +112,9 @@ export interface StoredDoc {
 
 export interface Profile {
   userType: UserType;
+  /** Set when signed in as org staff — which organization's listings they
+      manage. Absent for adopters and for the demo (no-backend) build. */
+  orgId?: string;
   name: string;
   email: string;
   phone: string;

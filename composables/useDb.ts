@@ -39,6 +39,13 @@ export function useDb() {
   const client = useSupabaseClient();
   const user = useSupabaseUser();
 
+  /* The Supabase module (asymmetric-JWT mode, used by the sb_publishable /
+     sb_secret keys) fills useSupabaseUser with raw JWT claims, where the user
+     id is `sub`, not `id`. Read both so this survives either shape. */
+  const userId = computed(
+    () => ((user.value as any)?.id ?? (user.value as any)?.sub ?? null) as string | null,
+  );
+
   const toDog = (row: DogRow): Dog => mapDogRow(row, (p) => photoUrlFor(url ?? "", p));
 
   /** Every listable dog, newest first. Returns [] when there's no backend
@@ -57,7 +64,7 @@ export function useDb() {
   /** Dogs belonging to the signed-in user's org, including withdrawn and
       adopted ones — the shelter dashboard needs the full history. */
   async function fetchMyOrgDogs(): Promise<Dog[]> {
-    if (!configured.value || !user.value) return [];
+    if (!configured.value || !userId.value) return [];
     const { data, error } = await client
       .from("dogs")
       .select(DOG_SELECT)
@@ -68,11 +75,14 @@ export function useDb() {
 
   /** The signed-in user's profile row, including which org they belong to. */
   async function fetchMyProfile() {
-    if (!configured.value || !user.value) return null;
+    /* Guard on the id, not just truthiness: the module briefly emits a user
+       ref before its id is populated, and querying .eq("id", undefined) is a
+       Postgres uuid-syntax error, not an empty result. */
+    if (!configured.value || !userId.value) return null;
     const { data, error } = await client
       .from("profiles")
       .select("id,email,name,phone,city,user_type,org_id,traits,adoption,onboarded_at")
-      .eq("id", user.value.id)
+      .eq("id", userId.value)
       .maybeSingle();
     if (error) throw new Error(error.message);
     return data as MyProfile | null;
@@ -162,7 +172,7 @@ export function useDb() {
   }
 
   return {
-    configured, client, user, toDog,
+    configured, client, user, userId, toDog,
     fetchDogs, fetchMyOrgDogs, fetchMyProfile,
     createDog, updateDogState, uploadDogPhotos,
   };
