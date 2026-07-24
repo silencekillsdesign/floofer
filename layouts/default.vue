@@ -1,6 +1,6 @@
 <script setup lang="ts">
 const route = useRoute();
-const { liked, dogs } = useStore();
+const { liked, dogs, profile, hydrated } = useStore();
 const { theme, toggle } = useTheme();
 const showFilters = useShowFilters();
 
@@ -15,6 +15,13 @@ const tabs = [
   { to: "/account", label: "Account", icon: "M12 12a4.5 4.5 0 1 0 0-9 4.5 4.5 0 0 0 0 9zm0 2c-4 0-8 2-8 5v2h16v-2c0-3-4-5-8-5z" },
 ];
 const isActive = (to: string) => (to === "/" ? route.path === "/" : route.path.startsWith(to));
+
+/* First-run wizard, adopters only — orgs and fosters go straight to listing.
+   Gated on `hydrated` so a returning user never sees it flash before
+   localStorage has been read back. */
+const showOnboarding = computed(
+  () => hydrated.value && profile.value.userType === "adopter" && !profile.value.onboardedAt,
+);
 </script>
 
 <template>
@@ -102,5 +109,11 @@ const isActive = (to: string) => (to === "/" ? route.path === "/" : route.path.s
 
     <!-- global filter panel (self-contained full-screen overlay) -->
     <FilterPanel :open="showFilters" @close="showFilters = false" />
+
+    <!-- first-run adopter wizard -->
+    <ClientOnly>
+      <!-- closes itself: finishing stamps profile.onboardedAt, which flips showOnboarding -->
+      <AdopterOnboarding :open="showOnboarding" />
+    </ClientOnly>
   </div>
 </template>

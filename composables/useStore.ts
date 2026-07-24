@@ -234,7 +234,7 @@ export function useStore() {
   };
 
   return {
-    dogs, liked, passed, applied, profile,
+    dogs, liked, passed, applied, profile, hydrated,
     matchPct, like, pass, unswipe, toggleAdopted, addDog, submitApplication,
     dataSource, liveStatus, liveError, liveDogs, loadLive,
   };

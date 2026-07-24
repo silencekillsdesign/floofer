@@ -120,6 +120,9 @@ export interface Profile {
   petPhotos: string[];
   adoption: AdoptionDetails;
   documents: StoredDoc[];
+  /** ISO date the adopter finished onboarding; absent = they haven't yet.
+      Skipping still stamps it — nobody should meet the wizard twice. */
+  onboardedAt?: string;
 }
 
 export interface Filters {
