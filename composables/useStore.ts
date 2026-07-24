@@ -1,4 +1,4 @@
-import { get as idbGet, set as idbSet } from "idb-keyval";
+import { get as idbGet, set as idbSet, del as idbDel } from "idb-keyval";
 import type { Dog, Filters, Profile, TraitPentagon } from "~/types";
 import { DOGS } from "~/data/dogs";
 
@@ -96,6 +96,9 @@ export function useStore() {
   /** Which provider liveDogs was loaded from — a source switch invalidates the cache. */
   const liveLoadedFor = useState<DataSource | "">("rm-live-for", () => "");
   const hydrated = useState<boolean>("rm-hydrated", () => false);
+  /** Pauses the persistence watcher so a deletion can't be undone by its own
+      reactive write-back. See clearMyData(). */
+  const suspendPersist = useState<boolean>("rm-suspend-persist", () => false);
 
   async function loadLive(force = false) {
     if (!import.meta.client) return;
@@ -158,6 +161,8 @@ export function useStore() {
     watch(
       [liked, passed, adoptedOverrides, applied, profile, customDogs, dataSource],
       () => {
+        if (suspendPersist.value) return; // mid-deletion — don't write anything back
+
         // small/hot state → localStorage, stripped of inline images
         try {
           localStorage.setItem(
@@ -219,6 +224,57 @@ export function useStore() {
     customDogs.value = [...customDogs.value, dog];
   };
 
+  /** Erase the user's personal data: everything on this device (localStorage +
+      the IndexedDB photo store) and, when signed in, the PII in their server
+      profile row. Swipe history and listings they created locally go too.
+      Leaves an empty adopter profile so the app still runs. */
+  async function clearMyData(): Promise<void> {
+    // Server first — if it fails we surface the error rather than pretending
+    // the data is gone. Local wipe still runs in the caller's catch/finally.
+    if (import.meta.client) {
+      await useDb().eraseMyProfile();
+    }
+
+    /* Suppress the persistence watcher for this whole operation. Clearing the
+       refs below triggers it, and it would re-write the (now empty) records
+       immediately after we delete them — a delete-then-resurrect race that
+       with different timing could persist data the user just asked us to
+       erase. */
+    suspendPersist.value = true;
+
+    liked.value = [];
+    passed.value = [];
+    adoptedOverrides.value = [];
+    applied.value = [];
+    customDogs.value = [];
+    profile.value = {
+      userType: "adopter",
+      name: "",
+      email: profile.value.email, // keep the login identity if signed in
+      phone: "",
+      city: "",
+      traits: { energy: 5, space: 5, social: 5, independence: 5, training: 5 },
+      payment: null,
+      homePhotos: [],
+      petPhotos: [],
+      adoption: defaultProfile().adoption,
+      documents: [],
+    };
+
+    /* Let the ref updates flush through the watcher's queue while it's still
+       suppressed, then delete the stored copies last. */
+    await nextTick();
+
+    try {
+      localStorage.removeItem(LS_KEY);
+    } catch {}
+    try {
+      await idbDel(IDB_PHOTOS_KEY);
+    } catch {}
+
+    suspendPersist.value = false;
+  }
+
   const matchPct = (d: Dog) => scoreMatch(d.traits, profile.value.traits);
 
   const like = (id: string) => {
@@ -244,7 +300,7 @@ export function useStore() {
 
   return {
     dogs, liked, passed, applied, profile, hydrated,
-    matchPct, like, pass, unswipe, toggleAdopted, addDog, submitApplication,
+    matchPct, like, pass, unswipe, toggleAdopted, addDog, submitApplication, clearMyData,
     dataSource, liveStatus, liveError, liveDogs, loadLive,
   };
 }

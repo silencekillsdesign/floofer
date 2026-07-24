@@ -1,7 +1,27 @@
 <script setup lang="ts">
 import type { TraitPentagon, UserType } from "~/types";
 
-const { dogs, profile, matchPct, toggleAdopted, dataSource, liveStatus, liveError, liveDogs, loadLive } = useStore();
+const { dogs, profile, matchPct, toggleAdopted, dataSource, liveStatus, liveError, liveDogs, loadLive, clearMyData } = useStore();
+
+/* Data deletion, two-step so it can't be a fat-finger. */
+const confirmingDelete = ref(false);
+const deleting = ref(false);
+const deleteError = ref("");
+const deletedOk = ref(false);
+
+async function runDelete() {
+  deleteError.value = "";
+  deleting.value = true;
+  try {
+    await clearMyData();
+    deletedOk.value = true;
+    confirmingDelete.value = false;
+  } catch (e: any) {
+    deleteError.value = e?.message ?? "Something went wrong. Your data was not fully deleted.";
+  } finally {
+    deleting.value = false;
+  }
+}
 
 const liveRiskCount = computed(() => liveDogs.value.filter((d) => d.risk === "high").length);
 
@@ -422,6 +442,51 @@ onMounted(() => {
               restart the dev server, then
               <button class="text-brand font-semibold underline" @click="loadLive(true)">retry</button>.
             </p>
+          </div>
+        </div>
+      </section>
+
+      <!-- ==== Privacy & your data (all types) ==== -->
+      <section class="min-w-0 p-5 bg-card rounded-3xl shadow-card border border-line md:col-span-2">
+        <h2 class="font-display text-lg font-semibold mb-1">Privacy &amp; your data</h2>
+        <p class="text-xs text-ink-soft mb-4">
+          Your profile and photos live on this device, and — if you're signed in — in a private row only you can read.
+          Read the full <NuxtLink to="/privacy" class="text-brand font-semibold underline">privacy notice</NuxtLink>.
+        </p>
+
+        <div v-if="deletedOk" class="p-3.5 rounded-xl bg-safe-soft border border-safe/30 text-sm">
+          <p class="font-semibold text-safe">✓ Your data was deleted.</p>
+          <p class="text-ink-soft text-xs mt-1">
+            Everything on this device and in your account row has been erased. To remove your sign-in account
+            entirely, email <a href="mailto:cj@silencekillsdesign.com" class="text-brand font-semibold underline">cj@silencekillsdesign.com</a>.
+          </p>
+        </div>
+
+        <div v-else-if="!confirmingDelete">
+          <button
+            class="px-4 py-2.5 rounded-full border border-risk/40 bg-risk-soft text-risk text-sm font-bold hover:border-risk transition-colors"
+            @click="confirmingDelete = true"
+          >Delete my data</button>
+        </div>
+
+        <div v-else class="p-4 rounded-2xl bg-risk-soft border border-risk/30">
+          <p class="text-sm font-bold text-risk mb-1">Delete everything?</p>
+          <p class="text-xs text-ink-soft mb-3">
+            This erases your profile, photos, documents, and swipe history from this device and from our database.
+            It can't be undone.
+          </p>
+          <p v-if="deleteError" class="text-xs text-risk font-semibold mb-2" role="alert">{{ deleteError }}</p>
+          <div class="flex gap-2.5">
+            <button
+              :disabled="deleting"
+              class="px-4 py-2.5 rounded-full bg-risk text-white text-sm font-bold hover:opacity-90 disabled:opacity-50"
+              @click="runDelete"
+            >{{ deleting ? "Deleting…" : "Yes, delete it all" }}</button>
+            <button
+              :disabled="deleting"
+              class="px-4 py-2.5 rounded-full border border-line bg-card text-sm font-semibold text-ink-soft hover:border-ink-faint disabled:opacity-50"
+              @click="confirmingDelete = false"
+            >Cancel</button>
           </div>
         </div>
       </section>

@@ -13,6 +13,7 @@ const name = ref("");
 const email = ref("");
 const message = ref("");
 const sent = ref(false);
+const consent = ref(false);
 
 watch(
   () => props.open,
@@ -20,6 +21,7 @@ watch(
     if (import.meta.client) document.body.style.overflow = o ? "hidden" : "";
     if (o) {
       sent.value = false;
+      consent.value = false; // affirmative each time — never pre-checked, never remembered
       name.value = profile.value.name;
       email.value = profile.value.email;
       message.value = `Hi ${props.dog.source.name}! I'd love to give ${props.dog.name} a home. When could we set up a meet?`;
@@ -30,11 +32,21 @@ onUnmounted(() => {
   if (import.meta.client) document.body.style.overflow = "";
 });
 
-const canSend = computed(() => name.value.trim() && email.value.trim() && message.value.trim());
-
 /* Adopters send their profile summary along with the message — this is the
-   moment the standing adoption profile earns its keep with the rescue. */
+   moment the standing adoption profile earns its keep with the rescue, and
+   the one point where personal data leaves the adopter's control, so it's
+   gated on explicit consent below. */
 const isAdopter = computed(() => profile.value.userType === "adopter");
+
+const canSend = computed(
+  () =>
+    name.value.trim() &&
+    email.value.trim() &&
+    message.value.trim() &&
+    // sharing the profile summary requires ticking consent; a plain message
+    // (non-adopter, nothing attached) does not
+    (!isAdopter.value || consent.value),
+);
 const completeness = computed(() => adoptionCompleteness(profile.value));
 const highlights = computed(() => {
   const a = profile.value.adoption;
@@ -155,6 +167,16 @@ const labelCls = "block text-xs font-semibold uppercase tracking-wide text-ink-s
 
         <!-- footer -->
         <footer class="shrink-0 border-t border-line/60 p-4 w-full sm:max-w-md sm:mx-auto" style="padding-bottom: calc(1rem + env(safe-area-inset-bottom))">
+          <!-- consent: the profile summary above is personal data; sharing it
+               with this shelter is opt-in, per-message, and never pre-checked -->
+          <label v-if="!sent && isAdopter" class="flex items-start gap-2.5 mb-3 cursor-pointer">
+            <input v-model="consent" type="checkbox" class="mt-0.5 w-4 h-4 shrink-0 accent-[#1E8FFF]" />
+            <span class="text-[12px] leading-relaxed text-ink-soft">
+              I agree to share my adoption-profile summary with
+              <strong class="text-ink">{{ dog.source.name }}</strong> so they can consider my request.
+              See our <NuxtLink to="/privacy" class="text-brand font-semibold underline" @click="emit('close')">privacy notice</NuxtLink>.
+            </span>
+          </label>
           <button
             v-if="!sent"
             class="w-full py-3.5 rounded-full font-semibold shadow-glow transition-colors"

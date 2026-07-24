@@ -108,7 +108,8 @@ useSeoMeta({ title: "Sign in — Floofer", robots: "noindex" });
 
         <p class="text-[12px] text-ink-faint leading-relaxed pt-1">
           No password to create or forget. If your shelter hasn't been invited yet, the link
-          will sign you in as an adopter.
+          will sign you in as an adopter. By signing in you agree to our
+          <NuxtLink to="/privacy" class="text-brand font-semibold underline">privacy notice</NuxtLink>.
         </p>
       </form>
     </div>

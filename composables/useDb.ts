@@ -171,9 +171,28 @@ export function useDb() {
     return position;
   }
 
+  /** Erase the personal data held in the signed-in user's profile row,
+      leaving an empty shell (the email stays — it's the login identity).
+      Backs the adopter-facing "delete my data" control. */
+  async function eraseMyProfile() {
+    if (!configured.value || !userId.value) return;
+    const { error } = await client
+      .from("profiles")
+      .update({
+        name: "",
+        phone: "",
+        city: "",
+        adoption: {},
+        traits: { energy: 5, space: 5, social: 5, independence: 5, training: 5 },
+        onboarded_at: null,
+      })
+      .eq("id", userId.value);
+    if (error) throw new Error(error.message);
+  }
+
   return {
     configured, client, user, userId, toDog,
     fetchDogs, fetchMyOrgDogs, fetchMyProfile,
-    createDog, updateDogState, uploadDogPhotos,
+    createDog, updateDogState, uploadDogPhotos, eraseMyProfile,
   };
 }
