@@ -6,7 +6,31 @@ export default defineNuxtConfig({
     "@vite-pwa/nuxt",
     "nuxt-og-image",
     "@sentry/nuxt/module",
+    "@nuxtjs/supabase",
   ],
+
+  /* Anonymous browsing is the product: an at-risk dog's page has to be
+     shareable and indexable without a login wall. `redirect: false` disables
+     the module's default global auth guard — individual org-only routes opt
+     in via middleware instead. */
+  supabase: {
+    /* The module's runtime plugin THROWS (not warns) when these are absent,
+       which would take the whole app down before the Supabase project even
+       exists. Fall back to the CLI's local default so the client constructs
+       harmlessly and demo mode keeps working; `useDb().configured` is the
+       gate that stops anything actually calling it. localhost is deliberate —
+       a placeholder public host could resolve to someone else's server. */
+    url: process.env.NUXT_PUBLIC_SUPABASE_URL || "http://localhost:54321",
+    key: process.env.NUXT_PUBLIC_SUPABASE_KEY || "local-anon-key-placeholder",
+    redirect: false,
+    /* We hand-maintain row types in types/db.ts rather than generating a
+       `Database` type, so stop the module looking for one. */
+    types: false,
+    /* Supabase writes its session to a cookie so SSR sees the same auth state
+       the client does; without this the server renders logged-out and the
+       page flips after hydration. */
+    cookieOptions: { sameSite: "lax", secure: process.env.NODE_ENV === "production" },
+  },
 
   /* Shared links need real Open Graph tags, and indexed pet pages mean organic
      traffic for at-risk dogs — both require server rendering. Personalized,

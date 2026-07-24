@@ -8,7 +8,8 @@
     "generate": "nuxt generate",
     "preview": "nuxt preview",
     "test": "vitest run",
-    "test:watch": "vitest"
+    "test:watch": "vitest",
+    "seed:org": "node scripts/seed-org.mjs"
   },
   "devDependencies": {
     "@nuxt/image": "^2.0.0",
@@ -22,6 +23,7 @@
     "vitest": "^4.1.10"
   },
   "dependencies": {
+    "@nuxtjs/supabase": "^2.0.9",
     "@resvg/resvg-js": "^2.6.2",
     "@takumi-rs/core": "^2.4.2",
     "leaflet": "^1.9.4",
