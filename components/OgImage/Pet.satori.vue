@@ -33,7 +33,7 @@ withDefaults(
 
     <!-- copy -->
     <div style="display: flex; flex-direction: column; justify-content: center; padding: 60px; width: 680px;">
-      <div style="display: flex; font-size: 30px; font-weight: 700; color: #1E8FFF; margin-bottom: 24px;">
+      <div style="display: flex; font-size: 30px; font-weight: 700; color: #5A6CEC; margin-bottom: 24px;">
         floofer
       </div>
 

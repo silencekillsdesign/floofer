@@ -30,7 +30,14 @@ const showOnboarding = computed(
     <!-- top bar -->
     <header class="sticky top-0 z-40 bg-paper/85 backdrop-blur border-b border-line/60">
       <div class="max-w-5xl mx-auto px-4 h-14 flex items-center justify-between">
-        <NuxtLink to="/" class="block w-[128px] shrink-0" aria-label="Floofer home">
+        <!-- Logo tracks the brand token, so the mark and the UI can never drift
+             into two different blues (and it lifts correctly in dark mode). -->
+        <NuxtLink
+          to="/"
+          class="block w-[128px] shrink-0"
+          style="--floofer-ink: rgb(var(--c-brand))"
+          aria-label="Floofer home"
+        >
           <ClientOnly>
             <FlooferLogo :wagging="wagging" />
             <!-- same box while hydrating, so the header doesn't reflow -->

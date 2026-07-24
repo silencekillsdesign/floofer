@@ -170,7 +170,7 @@ const labelCls = "block text-xs font-semibold uppercase tracking-wide text-ink-s
           <!-- consent: the profile summary above is personal data; sharing it
                with this shelter is opt-in, per-message, and never pre-checked -->
           <label v-if="!sent && isAdopter" class="flex items-start gap-2.5 mb-3 cursor-pointer">
-            <input v-model="consent" type="checkbox" class="mt-0.5 w-4 h-4 shrink-0 accent-[#1E8FFF]" />
+            <input v-model="consent" type="checkbox" class="mt-0.5 w-4 h-4 shrink-0 accent-[#5A6CEC]" />
             <span class="text-[12px] leading-relaxed text-ink-soft">
               I agree to share my adoption-profile summary with
               <strong class="text-ink">{{ dog.source.name }}</strong> so they can consider my request.
