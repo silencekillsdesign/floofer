@@ -3,6 +3,7 @@ const route = useRoute();
 const { liked, dogs, profile, hydrated } = useStore();
 const { theme, toggle } = useTheme();
 const showFilters = useShowFilters();
+const { wagging } = useLogoWag();
 
 const likedCount = computed(
   () => dogs.value.filter((d) => liked.value.includes(d.id) && !d.adopted).length,
@@ -29,8 +30,12 @@ const showOnboarding = computed(
     <!-- top bar -->
     <header class="sticky top-0 z-40 bg-paper/85 backdrop-blur border-b border-line/60">
       <div class="max-w-5xl mx-auto px-4 h-14 flex items-center justify-between">
-        <NuxtLink to="/" class="font-display font-semibold text-[26px] lowercase tracking-tight text-brand leading-none" aria-label="Floofer home">
-          floofer
+        <NuxtLink to="/" class="block w-[128px] shrink-0" aria-label="Floofer home">
+          <ClientOnly>
+            <FlooferLogo :wagging="wagging" />
+            <!-- same box while hydrating, so the header doesn't reflow -->
+            <template #fallback><FlooferLogo /></template>
+          </ClientOnly>
         </NuxtLink>
         <div class="flex items-center gap-0.5">
           <nav class="hidden sm:flex items-center gap-1 mr-2" aria-label="Main">

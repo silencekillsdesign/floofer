@@ -277,9 +277,16 @@ export function useStore() {
 
   const matchPct = (d: Dog) => scoreMatch(d.traits, profile.value.traits);
 
+  const { wag } = useLogoWag();
+
   const like = (id: string) => {
     passed.value = passed.value.filter((x) => x !== id);
-    if (!liked.value.includes(id)) liked.value = [...liked.value, id];
+    const isNew = !liked.value.includes(id);
+    if (isNew) liked.value = [...liked.value, id];
+    /* Wag on the like itself, wherever it came from — deck, bio page, or a
+       restored pass. Skipped when re-liking something already liked, so the
+       tail doesn't fire for a no-op. */
+    if (isNew) wag();
   };
   const pass = (id: string) => {
     liked.value = liked.value.filter((x) => x !== id);
@@ -290,7 +297,11 @@ export function useStore() {
     passed.value = passed.value.filter((x) => x !== id);
   };
   const submitApplication = (id: string) => {
-    if (!applied.value.includes(id)) applied.value = [...applied.value, id];
+    if (applied.value.includes(id)) return;
+    applied.value = [...applied.value, id];
+    /* The real match moment — an application actually reaching a rescue.
+       Twice the wag of a like, because it's twice the news. */
+    wag(2);
   };
   const toggleAdopted = (id: string) => {
     adoptedOverrides.value = adoptedOverrides.value.includes(id)
