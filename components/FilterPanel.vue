@@ -55,8 +55,9 @@ const healthOpts = [
   { key: "vaccinated", label: "💉 Vaccinated" },
 ] as const;
 const sourceOpts: { v: SourceType; label: string }[] = [
-  { v: "shelter", label: "🏥 Shelter" }, { v: "foster", label: "🛋️ Foster" },
-  { v: "individual", label: "👤 Rehoming" }, { v: "retirement", label: "🌅 Retirement" },
+  { v: "municipal", label: "🚨 Municipal" }, { v: "shelter", label: "🏥 No-kill" },
+  { v: "foster", label: "🛋️ Foster" }, { v: "individual", label: "👤 Rehoming" },
+  { v: "retirement", label: "🌅 Retirement" },
 ];
 
 function toggleGoodWith(v: "dogs" | "cats" | "kids") {

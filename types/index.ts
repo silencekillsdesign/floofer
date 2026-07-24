@@ -12,7 +12,11 @@ export interface TraitPentagon {
   training: number;
 }
 
-export type SourceType = "shelter" | "foster" | "individual" | "retirement";
+/** `shelter` is limited-admission (no-kill); `municipal` is open-admission —
+    animal control and county pounds, which euthanize for space and hold the
+    dogs Floofer exists to surface. Keeping them distinct is the point: an
+    adopter needs to know which countdown is real. */
+export type SourceType = "shelter" | "municipal" | "foster" | "individual" | "retirement";
 export type RiskLevel = "high" | "safe";
 export type UserType = SourceType | "adopter";
 

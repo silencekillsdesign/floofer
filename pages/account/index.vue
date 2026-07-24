@@ -13,7 +13,8 @@ const sourceOptions: { v: "demo" | "rescuegroups" | "petfinder"; label: string }
 
 const userTypes: { v: UserType; label: string; icon: string; blurb: string }[] = [
   { v: "adopter", label: "Adopter", icon: "🏠", blurb: "Looking to adopt" },
-  { v: "shelter", label: "Shelter", icon: "🏥", blurb: "Non-kill shelter org" },
+  { v: "shelter", label: "No-kill shelter", icon: "🏥", blurb: "Limited-admission rescue org" },
+  { v: "municipal", label: "Municipal shelter", icon: "🚨", blurb: "Open-admission — dogs on a euthanasia list" },
   { v: "foster", label: "Foster", icon: "🛋️", blurb: "Foster home" },
   { v: "individual", label: "Rehoming", icon: "👤", blurb: "Individual rehoming a pet" },
   { v: "retirement", label: "Retirement", icon: "🌅", blurb: "Pet retirement community" },

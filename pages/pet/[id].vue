@@ -7,7 +7,9 @@ const { dogs, profile, matchPct, like, pass, liked, applied, submitApplication }
    Message opens the contact sheet to the listing org. */
 const isLiked = computed(() => !!dog.value && liked.value.includes(dog.value.id));
 const isApplied = computed(() => !!dog.value && applied.value.includes(dog.value.id));
-const isPartnerOrg = computed(() => ["shelter", "retirement"].includes(profile.value.userType));
+const isPartnerOrg = computed(() =>
+  ["shelter", "municipal", "retirement"].includes(profile.value.userType),
+);
 const messageOpen = ref(false);
 
 const dog = computed(() => dogs.value.find((d) => d.id === route.params.id));
@@ -75,11 +77,12 @@ function heroUp(e: PointerEvent) {
 
 const sourceLabels = {
   shelter: "No-kill shelter",
+  municipal: "Municipal shelter",
   foster: "Foster home",
   individual: "Private rehoming",
   retirement: "Pet retirement community",
 };
-const sourceIcons = { shelter: "🏥", foster: "🛋️", individual: "👤", retirement: "🌅" };
+const sourceIcons = { shelter: "🏥", municipal: "🚨", foster: "🛋️", individual: "👤", retirement: "🌅" };
 
 function act(dir: "left" | "right") {
   if (!dog.value) return;
@@ -319,14 +322,28 @@ const compatTags = computed(() => {
     <!-- source -->
     <section class="mt-4 p-5 bg-card rounded-3xl shadow-card border border-line">
       <div class="flex items-center gap-3.5 min-w-0">
-        <span class="w-11 h-11 grid place-items-center rounded-2xl bg-brand-soft text-xl shrink-0" aria-hidden="true">
+        <span
+          class="w-11 h-11 grid place-items-center rounded-2xl text-xl shrink-0"
+          :class="dog.source.type === 'municipal' ? 'bg-risk-soft' : 'bg-brand-soft'"
+          aria-hidden="true"
+        >
           {{ sourceIcons[dog.source.type] }}
         </span>
         <div class="min-w-0">
           <p class="text-[11px] font-semibold uppercase tracking-wide text-ink-soft">{{ sourceLabels[dog.source.type] }}</p>
-          <p class="font-semibold truncate">{{ dog.source.name }}</p>
+          <!-- municipal org names run long ("… Animal Care & Control"); wrap rather than clip -->
+          <p class="font-semibold leading-snug">{{ dog.source.name }}</p>
         </div>
       </div>
+      <!-- The no-kill/open-admission distinction is the whole reason a
+           countdown on this page is literal rather than figurative. -->
+      <p
+        v-if="dog.source.type === 'municipal'"
+        class="mt-3.5 text-[12px] leading-relaxed text-ink-soft bg-risk-soft border border-risk/30 rounded-xl px-3.5 py-2.5"
+      >
+        <strong class="text-ink">Open-admission shelter.</strong> They take every animal brought to
+        them, so they can run out of room. Dogs here are euthanized for space — the countdown is real.
+      </p>
       <div class="flex flex-wrap gap-1.5 mt-3.5">
         <span class="px-2.5 py-1 rounded-full bg-paper-warm text-ink-soft text-xs font-semibold">📍 {{ dog.location.city }}</span>
         <span class="px-2.5 py-1 rounded-full bg-paper-warm text-ink-soft text-xs font-semibold">

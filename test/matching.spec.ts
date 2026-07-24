@@ -82,6 +82,23 @@ describe("applyFilters", () => {
     expect(out.length).toBeGreaterThan(0);
     expect(out.every((d) => d.source.type === "foster")).toBe(true);
   });
+
+  it("separates open-admission shelters from no-kill ones", () => {
+    const municipal = applyFilters(DOGS, f({ sources: ["municipal"] }), match);
+    expect(municipal.length).toBeGreaterThan(0);
+    expect(municipal.every((d) => d.source.type === "municipal")).toBe(true);
+    expect(municipal.some((d) => d.source.type === "shelter")).toBe(false);
+  });
+
+  /* The distinction only earns its keep if the countdown lives on the side
+     that actually euthanizes — a no-kill shelter with a death clock is the
+     data bug this source type exists to prevent. */
+  it("puts every euthanasia countdown on an open-admission shelter", () => {
+    const noKillWithClock = DOGS.filter(
+      (d) => d.source.type === "shelter" && d.risk === "high" && d.riskReason?.includes("capacity"),
+    );
+    expect(noKillWithClock).toEqual([]);
+  });
 });
 
 describe("milesFrom / lifeStage", () => {

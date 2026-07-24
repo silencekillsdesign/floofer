@@ -108,7 +108,7 @@ export default defineNuxtConfig({
         {
           name: "description",
           content:
-            "Tinder for pet adoption. Rescue Match connects adopters with dogs at the highest risk of euthanization from shelters, fosters, homes, and retirement communities.",
+            "Tinder for pet adoption. Floofer connects adopters with dogs at the highest risk of euthanization — from open-admission municipal shelters, no-kill rescues, fosters, homes, and retirement communities.",
         },
       ],
       script: [
