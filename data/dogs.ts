@@ -116,7 +116,11 @@ export const DOGS: Dog[] = [
     quirks: "Smiles with her whole face. Sleeps belly-up with zero dignity.",
     traits: { energy: 6, space: 5, social: 9, independence: 5, training: 3 },
     risk: "high", riskReason: "Long-stay — breed bias, 200+ days", riskCategory: "breed-bias", daysLeft: 21,
-    source: { type: "municipal", name: "Chicago Animal Care & Control" },
+    source: {
+      type: "municipal", name: "Chicago Animal Care & Control",
+      website: "chicagoanimalcare.org", phone: "(312) 555-0142",
+      email: "intake@chicagoanimalcare.org", contactName: "Dana Reyes, intake coordinator",
+    },
     location: { lat: 41.7508, lng: -87.6416, city: "Chicago (Englewood)" },
   }),
   listing({

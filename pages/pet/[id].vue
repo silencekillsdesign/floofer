@@ -397,6 +397,36 @@ const compatTags = computed(() => {
         <strong class="text-ink">Open-admission shelter.</strong> They take every animal brought to
         them, so they can run out of room. Dogs here are euthanized for space — the countdown is real.
       </p>
+      <!-- Reach a human directly. On a countdown, waiting on a generic inbox
+           is the difference between meeting this dog and not. -->
+      <div
+        v-if="dog.source.phone || dog.source.email || dog.source.website"
+        class="mt-3.5 pt-3.5 border-t border-line/60"
+      >
+        <p v-if="dog.source.contactName" class="text-[11px] font-semibold uppercase tracking-wide text-ink-faint mb-1.5">
+          Contact · {{ dog.source.contactName }}
+        </p>
+        <div class="flex flex-wrap gap-2">
+          <a
+            v-if="dog.source.phone"
+            :href="`tel:${dog.source.phone}`"
+            class="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-full bg-brand-soft text-brand text-xs font-bold hover:bg-brand hover:text-white transition-colors"
+          >📞 {{ dog.source.phone }}</a>
+          <a
+            v-if="dog.source.email"
+            :href="`mailto:${dog.source.email}?subject=${encodeURIComponent(`Adoption enquiry — ${dog.name}`)}`"
+            class="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-full bg-brand-soft text-brand text-xs font-bold hover:bg-brand hover:text-white transition-colors"
+          >✉️ Email</a>
+          <a
+            v-if="dog.source.website"
+            :href="`https://${dog.source.website}`"
+            target="_blank"
+            rel="noopener"
+            class="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-full bg-paper-warm text-ink-soft text-xs font-bold hover:text-ink transition-colors"
+          >🔗 {{ dog.source.website }}</a>
+        </div>
+      </div>
+
       <div class="flex flex-wrap gap-1.5 mt-3.5">
         <span class="px-2.5 py-1 rounded-full bg-paper-warm text-ink-soft text-xs font-semibold">📍 {{ dog.location.city }}</span>
         <span class="px-2.5 py-1 rounded-full bg-paper-warm text-ink-soft text-xs font-semibold">

@@ -3,6 +3,7 @@
    pet pages and the whole portfolio path predate the database and must keep
    working. So nothing calls Supabase without checking `configured` first. */
 import type { Dog, Profile, TraitPentagon, UserType } from "~/types";
+import { cityLine, formatAddress } from "~/types";
 import type {
   AdoptionStatus, DogRow, FastPassApplication, FastPassState,
 } from "~/types/db";
@@ -205,7 +206,9 @@ export function useDb() {
     const snapshot = {
       name: profile.name,
       phone: profile.phone,
-      city: profile.city,
+      city: cityLine(profile.address),
+      /* Full address — a verifier can't run a home check on a city name. */
+      address: formatAddress(profile.address).join(", "),
       dwelling: a.housing.dwelling,
       ownership: a.housing.ownership,
       landlordName: a.housing.landlordName,

@@ -65,7 +65,16 @@ export interface Dog {
   idealHome?: string;
 
   /* 6 — admin & logistics */
-  source: { type: SourceType; name: string };
+  /** Contact details ride along so an adopter can reach the listing org
+      without a round-trip through the app. On a countdown that matters. */
+  source: {
+    type: SourceType;
+    name: string;
+    website?: string;
+    phone?: string;
+    email?: string;
+    contactName?: string;
+  };
   location: { lat: number; lng: number; city: string };
   adoptionFee: number;
   risk: RiskLevel;
@@ -79,6 +88,40 @@ export interface Dog {
   criticalUntil?: string;
   daysLeft?: number;
   adopted?: boolean;
+}
+
+/** A postal address. Shelters need a real one to run a home check or verify a
+    landlord — "Chicago, IL" isn't enough to approve a placement. Kept
+    structured so it can be validated and, later, geocoded. */
+export interface Address {
+  street: string;
+  street2: string;
+  city: string;
+  state: string;
+  postalCode: string;
+}
+
+/** Who to call at an organization. A shelter listing needs a named human and
+    a direct line — an adopter with a dog on a countdown cannot wait on a
+    generic inbox. */
+export interface OrgDetails {
+  orgName: string;
+  website: string;
+  contactName: string;
+  contactRole: string;
+  contactPhone: string;
+  contactEmail: string;
+}
+
+/** "Chicago, IL" — the at-a-glance line used on cards and headers. */
+export function cityLine(a: Address): string {
+  return [a.city, a.state].filter((s) => s.trim()).join(", ");
+}
+
+/** Full postal address, one line per part, for records and home checks. */
+export function formatAddress(a: Address): string[] {
+  const last = [cityLine(a), a.postalCode].filter((s) => s.trim()).join(" ");
+  return [a.street, a.street2, last].map((s) => s.trim()).filter(Boolean);
 }
 
 /** One child in the household. Age is the only field that affects matching —
@@ -155,7 +198,9 @@ export interface Profile {
   name: string;
   email: string;
   phone: string;
-  city: string;
+  address: Address;
+  /** Populated for organisations; ignored for adopters and private rehomers. */
+  org: OrgDetails;
   traits: TraitPentagon;
   payment: { brand: string; last4: string; exp: string } | null;
   /** Shown to shelters during a home check. */

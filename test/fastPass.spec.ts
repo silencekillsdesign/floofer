@@ -6,7 +6,9 @@ import { fastPassChecks, fastPassStatus, canAnswer, hoursUntil } from "~/utils/f
 const ready = (over: Partial<Profile> = {}): Profile =>
   ({
     userType: "adopter",
-    name: "Test", email: "t@e.com", phone: "312-555-0142", city: "Chicago, IL",
+    name: "Test", email: "t@e.com", phone: "312-555-0142",
+    address: { street: "1 Test St", street2: "", city: "Chicago", state: "IL", postalCode: "60601" },
+    org: { orgName: "", website: "", contactName: "", contactRole: "", contactPhone: "", contactEmail: "" },
     traits: { energy: 5, space: 5, social: 5, independence: 5, training: 5 },
     payment: null,
     homePhotos: ["data:image/jpeg;base64,x"],

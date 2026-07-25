@@ -74,6 +74,10 @@ export function mapDogRow(row: DogRow, photoUrl: (path: string) => string): Dog 
     source: {
       type: row.orgs?.type ?? "shelter",
       name: row.orgs?.name ?? "Partner organization",
+      website: row.orgs?.website ?? undefined,
+      phone: row.orgs?.contact_phone ?? undefined,
+      email: row.orgs?.contact_email ?? undefined,
+      contactName: row.orgs?.contact_name ?? undefined,
     },
     location: {
       lat: row.lat ?? row.orgs?.lat ?? 0,
@@ -91,4 +95,4 @@ export function mapDogRow(row: DogRow, photoUrl: (path: string) => string): Dog 
 
 /** Columns the app needs, with org and photos embedded in one round-trip. */
 export const DOG_SELECT =
-  "*, orgs(id,name,type,city,lat,lng,contact_email,contact_phone), dog_photos(id,dog_id,storage_path,position)";
+  "*, orgs(id,name,type,city,lat,lng,contact_email,contact_phone,contact_name,website), dog_photos(id,dog_id,storage_path,position)";

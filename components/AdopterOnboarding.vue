@@ -6,6 +6,7 @@
    two stored fields (hours alone, experience) are asked ONCE here and fanned
    out on save — see `commit()`. */
 import type { HouseholdChild, HouseholdPet } from "~/types";
+import { cityLine } from "~/types";
 import { DOG_BREEDS } from "~/data/dogs";
 
 const props = defineProps<{ open: boolean }>();
@@ -47,7 +48,9 @@ watch(
     step.value = 0;
     const p = profile.value;
     d.name = p.name;
-    d.city = p.city;
+    /* Onboarding stays light — one location field. The full postal address is
+       collected later, in the adoption profile, where it's actually needed. */
+    d.city = cityLine(p.address);
     d.phone = p.phone;
     d.dwelling = p.adoption.housing.dwelling;
     d.ownership = p.adoption.housing.ownership;
@@ -121,7 +124,10 @@ const preview = computed(() => ({
 function commit() {
   const p = profile.value;
   p.name = d.name.trim() || p.name;
-  p.city = d.city.trim() || p.city;
+  if (d.city.trim()) {
+    const [city, state] = d.city.split(",").map((s) => s.trim());
+    p.address = { ...p.address, city: city || p.address.city, state: state || p.address.state };
+  }
   p.phone = d.phone.trim();
   p.traits = { ...preview.value };
 

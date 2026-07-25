@@ -1,5 +1,6 @@
 <script setup lang="ts">
-import type { TraitPentagon, UserType } from "~/types";
+import type { Address, OrgDetails, TraitPentagon, UserType } from "~/types";
+import { cityLine, formatAddress } from "~/types";
 
 const { dogs, profile, matchPct, toggleAdopted, dataSource, liveStatus, liveError, liveDogs, loadLive, clearMyData } = useStore();
 
@@ -103,13 +104,18 @@ function removeDoc(doc: { name: string; date: string }) {
    Cancel can discard them. */
 const editing = ref(false);
 const saved = ref(false);
-const draft = reactive({ name: "", email: "", phone: "", city: "" });
+const draft = reactive({
+  name: "", email: "", phone: "",
+  address: { street: "", street2: "", city: "", state: "", postalCode: "" } as Address,
+  org: { orgName: "", website: "", contactName: "", contactRole: "", contactPhone: "", contactEmail: "" } as OrgDetails,
+});
 
 function startEdit() {
   draft.name = profile.value.name;
   draft.email = profile.value.email;
   draft.phone = profile.value.phone;
-  draft.city = profile.value.city;
+  draft.address = { ...profile.value.address };
+  draft.org = { ...profile.value.org };
   editing.value = true;
   saved.value = false;
 }
@@ -117,7 +123,24 @@ function saveEdit() {
   profile.value.name = draft.name.trim() || profile.value.name;
   profile.value.email = draft.email.trim() || profile.value.email;
   profile.value.phone = draft.phone.trim();
-  profile.value.city = draft.city.trim() || profile.value.city;
+  profile.value.address = {
+    street: draft.address.street.trim(),
+    street2: draft.address.street2.trim(),
+    city: draft.address.city.trim(),
+    state: draft.address.state.trim().toUpperCase(),
+    postalCode: draft.address.postalCode.trim(),
+  };
+  if (isInstitution.value) {
+    profile.value.org = {
+      orgName: draft.org.orgName.trim(),
+      /* Stored bare, rendered with https:// — people type "floofer.org". */
+      website: draft.org.website.trim().replace(/^https?:\/\//i, ""),
+      contactName: draft.org.contactName.trim(),
+      contactRole: draft.org.contactRole.trim(),
+      contactPhone: draft.org.contactPhone.trim(),
+      contactEmail: draft.org.contactEmail.trim(),
+    };
+  }
   editing.value = false;
   saved.value = true;
   setTimeout(() => (saved.value = false), 1800);
@@ -189,10 +212,41 @@ onMounted(() => {
               <dt class="text-xs font-semibold uppercase tracking-wide text-ink-soft">Phone</dt>
               <dd class="text-sm font-semibold text-right truncate" :class="!profile.phone && 'text-ink-faint font-medium'">{{ profile.phone || "Add in Edit bio" }}</dd>
             </div>
-            <div class="flex items-center justify-between gap-4 py-2.5">
-              <dt class="text-xs font-semibold uppercase tracking-wide text-ink-soft">Location</dt>
-              <dd class="text-sm font-semibold text-right truncate">{{ profile.city }}</dd>
+            <div class="flex items-start justify-between gap-4 py-2.5">
+              <dt class="text-xs font-semibold uppercase tracking-wide text-ink-soft pt-0.5">Address</dt>
+              <dd class="text-sm font-semibold text-right">
+                <template v-if="formatAddress(profile.address).length">
+                  <span v-for="line in formatAddress(profile.address)" :key="line" class="block">{{ line }}</span>
+                </template>
+                <span v-else class="text-ink-faint font-medium">Add in Edit bio</span>
+              </dd>
             </div>
+
+            <!-- org contact: the details a rescuer needs to reach a real human -->
+            <template v-if="isInstitution">
+              <div class="flex items-center justify-between gap-4 py-2.5">
+                <dt class="text-xs font-semibold uppercase tracking-wide text-ink-soft">Organization</dt>
+                <dd class="text-sm font-semibold text-right truncate" :class="!profile.org.orgName && 'text-ink-faint font-medium'">{{ profile.org.orgName || "Add in Edit bio" }}</dd>
+              </div>
+              <div class="flex items-center justify-between gap-4 py-2.5">
+                <dt class="text-xs font-semibold uppercase tracking-wide text-ink-soft">Website</dt>
+                <dd class="text-sm font-semibold text-right truncate">
+                  <a v-if="profile.org.website" :href="`https://${profile.org.website}`" target="_blank" rel="noopener" class="text-brand underline">{{ profile.org.website }}</a>
+                  <span v-else class="text-ink-faint font-medium">Add in Edit bio</span>
+                </dd>
+              </div>
+              <div class="flex items-start justify-between gap-4 py-2.5">
+                <dt class="text-xs font-semibold uppercase tracking-wide text-ink-soft pt-0.5">Primary contact</dt>
+                <dd class="text-sm font-semibold text-right">
+                  <template v-if="profile.org.contactName">
+                    <span class="block">{{ profile.org.contactName }}<span v-if="profile.org.contactRole" class="text-ink-faint font-medium"> · {{ profile.org.contactRole }}</span></span>
+                    <a v-if="profile.org.contactPhone" :href="`tel:${profile.org.contactPhone}`" class="block text-brand">{{ profile.org.contactPhone }}</a>
+                    <a v-if="profile.org.contactEmail" :href="`mailto:${profile.org.contactEmail}`" class="block text-brand truncate">{{ profile.org.contactEmail }}</a>
+                  </template>
+                  <span v-else class="text-ink-faint font-medium">Add in Edit bio</span>
+                </dd>
+              </div>
+            </template>
           </dl>
           <button
             class="mt-3 w-full sm:w-auto flex items-center justify-center gap-1.5 px-5 py-2.5 rounded-full border border-line text-sm font-semibold text-ink-soft hover:border-ink-faint transition-colors"
@@ -217,9 +271,71 @@ onMounted(() => {
             <label class="block text-xs font-semibold uppercase tracking-wide text-ink-soft mb-1" for="p-phone">Phone</label>
             <input id="p-phone" v-model="draft.phone" type="tel" class="w-full rounded-xl border border-line bg-paper px-3 py-2.5 text-sm font-medium" placeholder="(555) 555-5555" />
           </div>
-          <div>
-            <label class="block text-xs font-semibold uppercase tracking-wide text-ink-soft mb-1" for="p-city">Location</label>
-            <input id="p-city" v-model="draft.city" class="w-full rounded-xl border border-line bg-paper px-3 py-2.5 text-sm font-medium" />
+          <!-- address: shelters need a real one to verify a landlord or run a
+               home check, so it's collected in full rather than as a city -->
+          <div class="pt-3 mt-1 border-t border-line/60">
+            <h3 class="text-xs font-semibold uppercase tracking-wide text-ink-soft mb-3">Address</h3>
+            <div class="space-y-3">
+              <div>
+                <label class="block text-xs font-semibold uppercase tracking-wide text-ink-soft mb-1" for="p-street">Street</label>
+                <input id="p-street" v-model="draft.address.street" autocomplete="address-line1" class="w-full rounded-xl border border-line bg-paper px-3 py-2.5 text-sm font-medium" placeholder="1600 N Milwaukee Ave" />
+              </div>
+              <div>
+                <label class="block text-xs font-semibold uppercase tracking-wide text-ink-soft mb-1" for="p-street2">Apt, suite, unit <span class="normal-case font-medium text-ink-faint">(optional)</span></label>
+                <input id="p-street2" v-model="draft.address.street2" autocomplete="address-line2" class="w-full rounded-xl border border-line bg-paper px-3 py-2.5 text-sm font-medium" placeholder="Apt 3F" />
+              </div>
+              <div class="grid grid-cols-1 sm:grid-cols-[2fr,1fr,1fr] gap-3">
+                <div>
+                  <label class="block text-xs font-semibold uppercase tracking-wide text-ink-soft mb-1" for="p-city">City</label>
+                  <input id="p-city" v-model="draft.address.city" autocomplete="address-level2" class="w-full rounded-xl border border-line bg-paper px-3 py-2.5 text-sm font-medium" />
+                </div>
+                <div>
+                  <label class="block text-xs font-semibold uppercase tracking-wide text-ink-soft mb-1" for="p-state">State</label>
+                  <input id="p-state" v-model="draft.address.state" autocomplete="address-level1" maxlength="2" class="w-full rounded-xl border border-line bg-paper px-3 py-2.5 text-sm font-medium uppercase" placeholder="IL" />
+                </div>
+                <div>
+                  <label class="block text-xs font-semibold uppercase tracking-wide text-ink-soft mb-1" for="p-zip">ZIP</label>
+                  <input id="p-zip" v-model="draft.address.postalCode" autocomplete="postal-code" inputmode="numeric" class="w-full rounded-xl border border-line bg-paper px-3 py-2.5 text-sm font-medium" placeholder="60622" />
+                </div>
+              </div>
+            </div>
+          </div>
+
+          <!-- org contact: a named human and a direct line. An adopter looking
+               at a countdown cannot wait on a generic inbox. -->
+          <div v-if="isInstitution" class="pt-3 mt-1 border-t border-line/60">
+            <h3 class="text-xs font-semibold uppercase tracking-wide text-ink-soft mb-1">Organization &amp; contact</h3>
+            <p class="text-[11px] text-ink-faint mb-3">Shown on every pet you list, so adopters can reach you directly.</p>
+            <div class="space-y-3">
+              <div>
+                <label class="block text-xs font-semibold uppercase tracking-wide text-ink-soft mb-1" for="p-orgname">Organization name</label>
+                <input id="p-orgname" v-model="draft.org.orgName" autocomplete="organization" class="w-full rounded-xl border border-line bg-paper px-3 py-2.5 text-sm font-medium" placeholder="Chicago Animal Care &amp; Control" />
+              </div>
+              <div>
+                <label class="block text-xs font-semibold uppercase tracking-wide text-ink-soft mb-1" for="p-website">Website</label>
+                <input id="p-website" v-model="draft.org.website" autocomplete="url" inputmode="url" class="w-full rounded-xl border border-line bg-paper px-3 py-2.5 text-sm font-medium" placeholder="chicagoanimalcare.org" />
+              </div>
+              <div class="grid grid-cols-1 sm:grid-cols-2 gap-3">
+                <div>
+                  <label class="block text-xs font-semibold uppercase tracking-wide text-ink-soft mb-1" for="p-cname">Primary contact</label>
+                  <input id="p-cname" v-model="draft.org.contactName" class="w-full rounded-xl border border-line bg-paper px-3 py-2.5 text-sm font-medium" placeholder="Dana Reyes" />
+                </div>
+                <div>
+                  <label class="block text-xs font-semibold uppercase tracking-wide text-ink-soft mb-1" for="p-crole">Their role</label>
+                  <input id="p-crole" v-model="draft.org.contactRole" class="w-full rounded-xl border border-line bg-paper px-3 py-2.5 text-sm font-medium" placeholder="Intake coordinator" />
+                </div>
+              </div>
+              <div class="grid grid-cols-1 sm:grid-cols-2 gap-3">
+                <div>
+                  <label class="block text-xs font-semibold uppercase tracking-wide text-ink-soft mb-1" for="p-cphone">Direct phone</label>
+                  <input id="p-cphone" v-model="draft.org.contactPhone" type="tel" class="w-full rounded-xl border border-line bg-paper px-3 py-2.5 text-sm font-medium" placeholder="(312) 555-0142" />
+                </div>
+                <div>
+                  <label class="block text-xs font-semibold uppercase tracking-wide text-ink-soft mb-1" for="p-cemail">Direct email</label>
+                  <input id="p-cemail" v-model="draft.org.contactEmail" type="email" class="w-full rounded-xl border border-line bg-paper px-3 py-2.5 text-sm font-medium" placeholder="intake@shelter.org" />
+                </div>
+              </div>
+            </div>
           </div>
 
           <!-- payment only surfaces while the bio form is open -->

@@ -112,6 +112,7 @@ useSeoMeta({ title: "Fast-Pass review — Floofer", robots: "noindex" });
 
             <!-- the snapshot -->
             <dl class="grid grid-cols-2 sm:grid-cols-3 gap-x-4 gap-y-2.5 mt-4 pt-3 border-t border-line/60">
+              <div class="col-span-2 sm:col-span-3"><dt class="text-[10px] font-bold uppercase tracking-wide text-ink-faint">Address</dt><dd class="text-sm font-semibold">{{ app.snapshot.address || app.snapshot.city || "—" }}</dd></div>
               <div><dt class="text-[10px] font-bold uppercase tracking-wide text-ink-faint">Housing</dt><dd class="text-sm font-semibold capitalize">{{ app.snapshot.dwelling || "—" }}, {{ app.snapshot.ownership || "—" }}</dd></div>
               <div><dt class="text-[10px] font-bold uppercase tracking-wide text-ink-faint">Pets allowed</dt><dd class="text-sm font-semibold capitalize">{{ app.snapshot.petsAllowed || (app.snapshot.ownership === "own" ? "owner" : "—") }}</dd></div>
               <div><dt class="text-[10px] font-bold uppercase tracking-wide text-ink-faint">Landlord</dt><dd class="text-sm font-semibold">{{ app.snapshot.landlordPhone || "n/a" }}</dd></div>

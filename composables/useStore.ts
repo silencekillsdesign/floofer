@@ -42,7 +42,8 @@ const defaultProfile = (): Profile => ({
   name: "CJ Williams",
   email: "cj@silencekillsdesign.com",
   phone: "",
-  city: "Chicago, IL",
+  address: { street: "", street2: "", city: "Chicago", state: "IL", postalCode: "" },
+  org: { orgName: "", website: "", contactName: "", contactRole: "", contactPhone: "", contactEmail: "" },
   traits: { energy: 6, space: 4, social: 7, independence: 6, training: 5 },
   payment: { brand: "Visa", last4: "4242", exp: "08/28" },
   homePhotos: [],
@@ -87,6 +88,17 @@ const uid = () => Math.random().toString(36).slice(2, 10);
     note rather than dropping what someone typed. Runs once — after the first
     save the arrays are the only source. */
 export function migrateProfile(p: Profile): Profile {
+  /* city was a single string ("Chicago, IL") before addresses were structured.
+     Keyed on the old field being present, not on address being blank — the
+     profile is merged with defaults before this runs, so address always
+     exists and an emptiness check would never fire. */
+  const legacyCity = (p as unknown as { city?: string }).city;
+  if (typeof legacyCity === "string" && legacyCity.trim()) {
+    const [city, state] = legacyCity.split(",").map((s) => s.trim());
+    p.address = { ...p.address, city: city || p.address.city, state: state || p.address.state };
+  }
+  delete (p as unknown as { city?: string }).city;
+
   const legacy = p.adoption as unknown as {
     household?: { childrenAges?: string };
     vet?: { currentPets?: string; pastPets?: string };

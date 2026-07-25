@@ -47,7 +47,11 @@ export default defineNuxtPlugin(() => {
           name: p.name || profile.value.name,
           email: p.email || profile.value.email,
           phone: p.phone || profile.value.phone,
-          city: p.city || profile.value.city,
+          /* The server stores a display city only; the structured address is
+             local until the profiles table carries it. Never blank what's here. */
+          address: p.city
+            ? { ...profile.value.address, city: p.city.split(",")[0].trim() || profile.value.address.city }
+            : profile.value.address,
           traits: p.traits ?? profile.value.traits,
         };
       } catch (e) {

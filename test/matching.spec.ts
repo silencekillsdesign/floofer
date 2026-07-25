@@ -10,6 +10,7 @@ import {
 } from "~/composables/useStore";
 import { DOGS } from "~/data/dogs";
 import type { Dog, Filters, Profile, TraitPentagon } from "~/types";
+import { cityLine, formatAddress } from "~/types";
 
 const dog = (id: string) => DOGS.find((d) => d.id === id)!;
 const pct = (d: Dog, user: TraitPentagon) => scoreMatch(d.traits, user);
@@ -123,6 +124,35 @@ describe("applyFilters", () => {
   });
 });
 
+describe("address formatting", () => {
+  const a = (over = {}) => ({
+    street: "1600 N Milwaukee Ave", street2: "Apt 3F",
+    city: "Chicago", state: "IL", postalCode: "60622", ...over,
+  });
+
+  it("renders a city line", () => {
+    expect(cityLine(a())).toBe("Chicago, IL");
+  });
+
+  it("omits an empty state rather than leaving a dangling comma", () => {
+    expect(cityLine(a({ state: "" }))).toBe("Chicago");
+  });
+
+  it("builds a postal address one line per part", () => {
+    expect(formatAddress(a())).toEqual(["1600 N Milwaukee Ave", "Apt 3F", "Chicago, IL 60622"]);
+  });
+
+  it("skips blank lines so a partial address still reads", () => {
+    expect(formatAddress(a({ street2: "", postalCode: "" }))).toEqual([
+      "1600 N Milwaukee Ave", "Chicago, IL",
+    ]);
+  });
+
+  it("returns nothing at all for an empty address", () => {
+    expect(formatAddress({ street: "", street2: "", city: "", state: "", postalCode: "" })).toEqual([]);
+  });
+});
+
 describe("milesFrom / lifeStage", () => {
   it("computes a sane distance from the Chicago home base", () => {
     expect(milesFrom(dog("waffles"))).toBe(0); // the Loop itself
@@ -140,7 +170,9 @@ describe("milesFrom / lifeStage", () => {
 /* Shared by the completeness and migration suites. */
 const blank = (): Profile => ({
     userType: "adopter",
-    name: "Test", email: "t@example.com", phone: "", city: "Chicago, IL",
+    name: "Test", email: "t@example.com", phone: "",
+    address: { street: "1 Test St", street2: "", city: "Chicago", state: "IL", postalCode: "60601" },
+    org: { orgName: "", website: "", contactName: "", contactRole: "", contactPhone: "", contactEmail: "" },
     traits: HOME_LIKE(),
     payment: null, homePhotos: [], petPhotos: [], documents: [],
     adoption: {
@@ -244,6 +276,24 @@ describe("migrateProfile", () => {
     p.adoption.household.children = [{ id: "x", age: 8 }];
     const out = migrateProfile(p);
     expect(out.adoption.household.children).toEqual([{ id: "x", age: 8 }]);
+  });
+
+  it("splits a legacy city string into city and state", () => {
+    const p = blank();
+    delete (p as any).address;
+    (p as any).city = "Evanston, IL";
+    const out = migrateProfile({ ...p, address: { street: "", street2: "", city: "", state: "", postalCode: "" } } as any);
+    expect(out.address.city).toBe("Evanston");
+    expect(out.address.state).toBe("IL");
+    expect((out as any).city).toBeUndefined();
+  });
+
+  it("keeps a bare city when no state was given", () => {
+    const p: any = { ...blank(), city: "Chicago" };
+    p.address = { street: "", street2: "", city: "", state: "IL", postalCode: "" };
+    const out = migrateProfile(p);
+    expect(out.address.city).toBe("Chicago");
+    expect(out.address.state).toBe("IL");
   });
 
   it("drops the legacy fields once migrated", () => {

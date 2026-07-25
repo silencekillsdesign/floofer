@@ -79,7 +79,7 @@ const row = (over: Partial<DogRow> = {}): DogRow => ({
   risk: "safe", risk_reason: null, risk_review_date: null, status: "available",
   orgs: {
     id: "o1", name: "Cook County Animal Care & Control", type: "municipal",
-    city: "Chicago, IL", lat: 41.9, lng: -87.7, contact_email: null, contact_phone: null,
+    city: "Chicago, IL", lat: 41.9, lng: -87.7, contact_email: null, contact_phone: null, contact_name: null, website: null,
   },
   dog_photos: [],
   ...over,

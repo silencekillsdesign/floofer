@@ -17,6 +17,8 @@ export interface OrgRow {
   lng: number | null;
   contact_email: string | null;
   contact_phone: string | null;
+  contact_name: string | null;
+  website: string | null;
 }
 
 export interface DogPhotoRow {
@@ -34,6 +36,7 @@ export interface FastPassSnapshot {
   name: string;
   phone: string;
   city: string;
+  address: string;
   dwelling: string;
   ownership: string;
   landlordName: string;
