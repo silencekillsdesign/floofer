@@ -39,13 +39,23 @@ const sourceOptions = computed(() =>
 );
 
 const userTypes: { v: UserType; label: string; icon: string; blurb: string }[] = [
-  { v: "adopter", label: "Adopter", icon: "🏠", blurb: "Looking to adopt" },
+  /* Ordered by direction, not by name: taking a pet, then giving one up, then
+     the organisations. "Adopter" and "Rehoming" look alike in a list — both
+     are one private person — so the blurbs carry the direction. */
+  { v: "adopter", label: "Adopter", icon: "🏠", blurb: "I'm looking to take a pet in" },
+  { v: "individual", label: "Rehoming my pet", icon: "👤", blurb: "I need to find my own pet a new home" },
   { v: "shelter", label: "No-kill shelter", icon: "🏥", blurb: "Limited-admission rescue org" },
   { v: "municipal", label: "Municipal shelter", icon: "🚨", blurb: "Open-admission — dogs on a euthanasia list" },
   { v: "foster", label: "Foster", icon: "🛋️", blurb: "Foster home" },
-  { v: "individual", label: "Rehoming", icon: "👤", blurb: "Individual rehoming a pet" },
   { v: "retirement", label: "Retirement", icon: "🌅", blurb: "Pet retirement community" },
 ];
+
+/* A family rehoming one dog is not an institution. They were being shown
+   "Organization info", "Payout & donations" and a "Receiving account" —
+   copy written for a shelter. Matches the existing grouping in pet/[id].vue. */
+const isInstitution = computed(() =>
+  ["shelter", "municipal", "retirement"].includes(profile.value.userType),
+);
 
 /* Dogs "managed" by the current org type (demo: match on source.type). */
 const managedDogs = computed(() =>
@@ -160,7 +170,7 @@ onMounted(() => {
       <!-- ==== Personal info + payment (all types) ==== -->
       <section class="min-w-0 p-5 bg-card rounded-3xl shadow-card border border-line md:col-span-2">
         <div class="flex flex-wrap items-center justify-between gap-2 mb-3">
-          <h2 class="font-display text-lg font-semibold">{{ profile.userType === "adopter" ? "Personal info" : "Organization info" }}</h2>
+          <h2 class="font-display text-lg font-semibold">{{ isInstitution ? "Organization info" : "Personal info" }}</h2>
           <span v-if="saved" class="text-sm font-semibold text-safe">Saved ✓</span>
         </div>
 
@@ -215,11 +225,11 @@ onMounted(() => {
           <!-- payment only surfaces while the bio form is open -->
           <div class="pt-3 mt-1 border-t border-line/60">
             <h3 class="text-xs font-semibold uppercase tracking-wide text-ink-soft mb-3">
-              {{ profile.userType === "adopter" ? "Payment method" : "Payout & donations" }}
+              {{ isInstitution ? "Payout & donations" : "Payment method" }}
             </h3>
             <div class="sm:max-w-xs">
               <div v-if="profile.payment" class="p-4 rounded-2xl bg-gradient-to-br from-[#1E2A44] to-[#0B1626] text-white border border-line mb-3">
-                <p class="text-xs uppercase tracking-widest opacity-70 mb-4">{{ profile.userType === "adopter" ? "Adoption fees & donations" : "Receiving account" }}</p>
+                <p class="text-xs uppercase tracking-widest opacity-70 mb-4">{{ isInstitution ? "Receiving account" : "Adoption fees & donations" }}</p>
                 <p class="font-mono text-lg tracking-wider">•••• •••• •••• {{ profile.payment.last4 }}</p>
                 <div class="flex justify-between text-xs mt-2 opacity-80">
                   <span>{{ profile.payment.brand }}</span><span>Exp {{ profile.payment.exp }}</span>
@@ -234,7 +244,7 @@ onMounted(() => {
           <div class="pt-3 mt-1 border-t border-line/60">
             <div class="flex flex-wrap items-center justify-between gap-2 mb-2">
               <h3 class="text-xs font-semibold uppercase tracking-wide text-ink-soft">
-                {{ profile.userType === "adopter" ? "My documents" : "Pet records" }}
+                {{ isInstitution ? "Pet records" : "My documents" }}
               </h3>
               <button class="px-4 py-2 rounded-full bg-brand text-white text-xs font-semibold hover:bg-brand-deep" @click="docInput?.click()">+ Upload</button>
             </div>
