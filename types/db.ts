@@ -4,7 +4,7 @@
    Keep the two in sync — the mapper below is the only thing standing between
    a schema change and a silently wrong dog card. */
 
-import type { SourceType, TraitPentagon, YNS } from "~/types";
+import type { RiskCategory, SourceType, TraitPentagon, YNS } from "~/types";
 
 export type AdoptionStatus = "available" | "pending" | "adopted" | "withdrawn";
 
@@ -57,6 +57,7 @@ export interface DogRow {
   adoption_fee: number;
   risk: "safe" | "high";
   risk_reason: string | null;
+  risk_category: RiskCategory | null;
   risk_review_date: string | null; // ISO date (no time) — a deadline, not a countdown
   status: AdoptionStatus;
   /* Supabase embeds these when the select asks for them. */

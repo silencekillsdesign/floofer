@@ -83,6 +83,27 @@ describe("applyFilters", () => {
     expect(out.every((d) => d.source.type === "foster")).toBe(true);
   });
 
+  /* The populations that wait longest are the reason the app exists, so an
+     adopter has to be able to ask for them specifically. */
+  it("filters to a single risk reason", () => {
+    const out = applyFilters(DOGS, f({ riskCategories: ["breed-bias"] }), match);
+    expect(out.length).toBeGreaterThan(0);
+    expect(out.every((d) => d.riskCategory === "breed-bias")).toBe(true);
+  });
+
+  it("treats an empty risk-reason filter as every reason", () => {
+    const all = applyFilters(DOGS, f(), match);
+    const explicit = applyFilters(DOGS, f({ riskCategories: [] }), match);
+    expect(explicit.length).toBe(all.length);
+  });
+
+  /* Every at-risk dog must carry a category, or the pet page has no reframe to
+     show and the countdown reverts to an unexplained warning. */
+  it("gives every at-risk dog a category to explain it", () => {
+    const uncategorised = DOGS.filter((d) => d.risk === "high" && !d.riskCategory);
+    expect(uncategorised.map((d) => d.name)).toEqual([]);
+  });
+
   it("separates open-admission shelters from no-kill ones", () => {
     const municipal = applyFilters(DOGS, f({ sources: ["municipal"] }), match);
     expect(municipal.length).toBeGreaterThan(0);

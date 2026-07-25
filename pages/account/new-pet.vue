@@ -1,6 +1,7 @@
 <script setup lang="ts">
 import type { Dog, TraitPentagon } from "~/types";
 import { CITY_OPTIONS, DOG_BREEDS } from "~/data/dogs";
+import { RISK_CATEGORIES, RISK_CATEGORY_OPTIONS, type RiskCategory } from "~/data/riskCategories";
 
 /* Same vocabulary the adopter's breed filter uses, so a listing's breed can
    actually be matched against what adopters searched for. */
@@ -17,6 +18,10 @@ const today = ref("");
 onMounted(() => (today.value = todayLocalISO()));
 
 const saving = ref(false);
+
+/* Preview the exact copy adopters will read, so the lister can see they're
+   publishing an explanation rather than a warning. */
+const riskBlurb = computed(() => (form.atRisk ? RISK_CATEGORIES[form.riskCategory] : null));
 
 /* Orgs list pets; adopters get redirected to browse.
    Deferred to the client and gated on `hydrated`: the server has no idea who
@@ -64,6 +69,7 @@ const form = reactive({
   adoptionFee: 250,
   atRisk: false,
   riskReason: "",
+  riskCategory: "capacity" as RiskCategory,
   /* A date, not a day count: shelters know "his hold expires Aug 1", and a
      stored countdown silently rots the moment nobody re-edits it. */
   riskReviewDate: "",
@@ -148,6 +154,7 @@ async function submit() {
         adoption_fee: form.adoptionFee,
         risk: form.atRisk ? "high" : "safe",
         risk_reason: form.atRisk ? form.riskReason.trim() : null,
+        risk_category: form.atRisk ? form.riskCategory : null,
         risk_review_date: form.atRisk && form.riskReviewDate ? form.riskReviewDate : null,
         status: "available",
       });
@@ -200,6 +207,7 @@ async function submit() {
     adoptionFee: form.adoptionFee,
     risk: form.atRisk ? "high" : "safe",
     riskReason: form.atRisk ? form.riskReason.trim() : undefined,
+    riskCategory: form.atRisk ? form.riskCategory : undefined,
     /* Same derivation the DB path uses, so demo and live cards read alike. */
     daysLeft:
       form.atRisk && form.riskReviewDate
@@ -438,6 +446,13 @@ const segCls = (active: boolean) =>
             <input v-model="form.atRisk" type="checkbox" class="w-5 h-5 accent-[#FF4D42] shrink-0" />
           </label>
           <div v-if="form.atRisk" class="grid grid-cols-1 sm:grid-cols-[1fr,140px] gap-3 mt-3">
+            <div class="sm:col-span-2">
+              <p :class="labelCls">Why is this pet at risk?</p>
+              <AppSelect v-model="form.riskCategory" :options="RISK_CATEGORY_OPTIONS" aria-label="Risk category" />
+              <p v-if="riskBlurb" class="text-xs text-ink-soft leading-relaxed mt-1.5">
+                Adopters will see: <strong class="text-ink">{{ riskBlurb.headline }}</strong> — {{ riskBlurb.body }}
+              </p>
+            </div>
             <div><label :class="labelCls" for="f-riskwhy">Reason (shown to adopters) *</label><input id="f-riskwhy" v-model="form.riskReason" :class="inputCls" placeholder="e.g. Shelter over capacity — transfer list" /></div>
             <div>
               <label :class="labelCls" for="f-deadline">Deadline</label>

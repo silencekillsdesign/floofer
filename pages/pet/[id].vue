@@ -1,4 +1,6 @@
 <script setup lang="ts">
+import { RISK_CATEGORIES } from "~/data/riskCategories";
+
 const route = useRoute();
 const router = useRouter();
 const { dogs, profile, matchPct, like, pass, liked, applied, submitApplication } = useStore();
@@ -14,6 +16,11 @@ const messageOpen = ref(false);
 
 const dog = computed(() => dogs.value.find((d) => d.id === route.params.id));
 const photoIdx = ref(0);
+
+/* Adopter-facing explanation of *why* this animal is on a list. */
+const riskInfo = computed(() =>
+  dog.value?.riskCategory ? RISK_CATEGORIES[dog.value.riskCategory] : null,
+);
 watch(() => dog.value?.id, () => (photoIdx.value = 0));
 
 /* Shared links carry the dog's face and their deadline — the whole point of
@@ -248,6 +255,20 @@ const compatTags = computed(() => {
         <template v-if="dog.daysLeft != null"><strong>{{ dog.daysLeft }} days</strong> to find a home. </template>
         Liking {{ dog.name }} notifies {{ dog.source.name }} immediately.
       </p>
+
+      <!-- The reframe. An adopter reads "pit bull, 200+ days" as a warning
+           about the dog; it almost never is. Naming the mechanism is the
+           difference between passing on Pearl and meeting her. -->
+      <div v-if="riskInfo" class="mt-3 pt-3 border-t border-risk/20">
+        <p class="text-sm font-bold text-ink flex items-center gap-1.5">
+          <span aria-hidden="true">{{ riskInfo.icon }}</span>
+          {{ riskInfo.headline }}
+        </p>
+        <p class="text-[13px] text-ink-soft leading-relaxed mt-1">{{ riskInfo.body }}</p>
+        <p v-if="riskInfo.circumstantial" class="text-[12px] font-semibold text-risk mt-2">
+          This is about the shelter's situation — not {{ dog.name }}.
+        </p>
+      </div>
     </div>
     <div v-if="dog.adopted" class="mt-4 p-4 rounded-2xl bg-paper-warm border border-line">
       <p class="font-semibold text-sm">🎉 {{ dog.name }} has been adopted!</p>

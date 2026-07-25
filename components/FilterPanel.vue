@@ -1,6 +1,13 @@
 <script setup lang="ts">
-import type { SourceType } from "~/types";
+import type { RiskCategory, SourceType } from "~/types";
 import { DOG_BREEDS } from "~/data/dogs";
+import { RISK_CATEGORIES } from "~/data/riskCategories";
+
+/* Only the circumstantial reasons are offered as a filter. "Behavior review"
+   and "transport" aren't populations an adopter sets out to help. */
+const riskOpts = (Object.keys(RISK_CATEGORIES) as RiskCategory[])
+  .filter((k) => RISK_CATEGORIES[k].circumstantial)
+  .map((v) => ({ v, label: `${RISK_CATEGORIES[v].icon} ${RISK_CATEGORIES[v].label}` }));
 
 const props = defineProps<{ open: boolean }>();
 const emit = defineEmits<{ close: [] }>();
@@ -69,6 +76,11 @@ function toggleSource(v: SourceType) {
   filters.value.sources = filters.value.sources.includes(v)
     ? filters.value.sources.filter((x) => x !== v)
     : [...filters.value.sources, v];
+}
+function toggleRiskCategory(v: RiskCategory) {
+  filters.value.riskCategories = filters.value.riskCategories.includes(v)
+    ? filters.value.riskCategories.filter((x) => x !== v)
+    : [...filters.value.riskCategories, v];
 }
 
 const chip = (active: boolean) =>
@@ -162,6 +174,22 @@ onUnmounted(() => {
           <span :class="labelCls">Listed by</span>
           <div class="flex flex-wrap gap-2">
             <button v-for="s in sourceOpts" :key="s.v" :class="chip(filters.sources.includes(s.v))" :aria-pressed="filters.sources.includes(s.v)" @click="toggleSource(s.v)">{{ s.label }}</button>
+          </div>
+        </div>
+
+        <!-- Why they're at risk -->
+        <div>
+          <span :class="labelCls">Why they're at risk</span>
+          <p class="text-[11px] text-ink-faint leading-relaxed -mt-1 mb-2">
+            These pets wait longest. Pick one to seek them out.
+          </p>
+          <div class="flex flex-wrap gap-2">
+            <button
+              v-for="r in riskOpts" :key="r.v"
+              :class="chip(filters.riskCategories.includes(r.v))"
+              :aria-pressed="filters.riskCategories.includes(r.v)"
+              @click="toggleRiskCategory(r.v)"
+            >{{ r.label }}</button>
           </div>
         </div>
 

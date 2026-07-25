@@ -1,3 +1,6 @@
+import type { RiskCategory } from "~/data/riskCategories";
+export type { RiskCategory };
+
 /** The 5 pentagon axes. Pet side = what the dog needs; user side = what the home offers. */
 export interface TraitPentagon {
   /** Pet: energy level · You: household activity level */
@@ -66,6 +69,9 @@ export interface Dog {
   adoptionFee: number;
   risk: RiskLevel;
   riskReason?: string;
+  /** Structured "why" behind the risk. Free text can state a reason; only a
+      category can teach an adopter that it isn't about the animal. */
+  riskCategory?: RiskCategory;
   daysLeft?: number;
   adopted?: boolean;
 }
@@ -148,4 +154,6 @@ export interface Filters {
   vaccinated: boolean;
   /** empty = all sources. */
   sources: SourceType[];
+  /** empty = every risk reason. */
+  riskCategories: RiskCategory[];
 }

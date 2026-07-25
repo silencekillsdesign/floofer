@@ -83,6 +83,7 @@ export function mapDogRow(row: DogRow, photoUrl: (path: string) => string): Dog 
     adoptionFee: row.adoption_fee,
     risk: row.risk,
     riskReason: row.risk_reason ?? undefined,
+    riskCategory: row.risk_category ?? undefined,
     daysLeft,
     adopted: row.status === "adopted",
   };

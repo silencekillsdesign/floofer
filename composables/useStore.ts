@@ -395,6 +395,7 @@ export const defaultFilters = (): Filters => ({
   fixed: false,
   vaccinated: false,
   sources: [],
+  riskCategories: [],
 });
 
 export function useFilters() {
@@ -418,6 +419,11 @@ export function applyFilters(list: Dog[], f: Filters, matchPct: (d: Dog) => numb
     if (f.fixed && d.spayNeuter === "no") return false;
     if (f.vaccinated && !d.vaccinated) return false;
     if (f.sources.length && !f.sources.includes(d.source.type)) return false;
+    /* Empty = every reason. Lets an adopter deliberately seek the populations
+       that wait longest — breed-bias and long-stay dogs get passed over most,
+       so being able to ask for them is the point of the app. */
+    if (f.riskCategories.length && !(d.riskCategory && f.riskCategories.includes(d.riskCategory)))
+      return false;
     return true;
   });
 }
