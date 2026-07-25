@@ -59,6 +59,14 @@ const showOnboarding = computed(
                 >{{ likedCount }}</span>
               </ClientOnly>
             </NuxtLink>
+            <NuxtLink
+              to="/plus"
+              class="plus-pill flex items-center gap-1.5 px-3.5 py-1.5 rounded-full text-sm font-extrabold text-white ml-1"
+              :class="isActive('/plus') && 'is-active'"
+            >
+              <svg viewBox="0 0 24 24" class="w-4 h-4" fill="currentColor" aria-hidden="true"><path d="M12 2l2.2 5.6L20 9l-4.4 3.6L17 19l-5-3.2L7 19l1.4-6.4L4 9l5.8-1.4L12 2z"/></svg>
+              Plus
+            </NuxtLink>
           </nav>
 
           <!-- filters -->
@@ -101,7 +109,7 @@ const showOnboarding = computed(
 
     <!-- bottom tab bar (mobile) -->
     <nav class="sm:hidden fixed bottom-0 inset-x-0 z-40 bg-paper/95 backdrop-blur border-t border-line/60" aria-label="Main" style="padding-bottom: env(safe-area-inset-bottom)">
-      <div class="grid grid-cols-4 h-16">
+      <div class="grid grid-cols-5 h-16">
         <NuxtLink
           v-for="t in tabs" :key="t.to" :to="t.to"
           class="relative flex flex-col items-center justify-center gap-0.5 text-[11px] font-semibold"
@@ -116,6 +124,18 @@ const showOnboarding = computed(
             >{{ likedCount }}</span>
           </ClientOnly>
         </NuxtLink>
+
+        <!-- Plus reads as an offer, not a fifth destination — so it's a filled
+             pill rather than another icon-and-label like its neighbours. -->
+        <NuxtLink to="/plus" class="flex items-center justify-center px-1.5" aria-label="Floofer Plus">
+          <span
+            class="plus-pill flex flex-col items-center justify-center w-full py-1.5 rounded-2xl text-white shadow-glow"
+            :class="isActive('/plus') && 'is-active'"
+          >
+            <svg viewBox="0 0 24 24" class="w-5 h-5" fill="currentColor" aria-hidden="true"><path d="M12 2l2.2 5.6L20 9l-4.4 3.6L17 19l-5-3.2L7 19l1.4-6.4L4 9l5.8-1.4L12 2z"/></svg>
+            <span class="text-[11px] font-extrabold leading-none mt-0.5">Plus</span>
+          </span>
+        </NuxtLink>
       </div>
     </nav>
 
@@ -129,3 +149,29 @@ const showOnboarding = computed(
     </ClientOnly>
   </div>
 </template>
+
+<style scoped>
+/* Brand indigo into the like-pink: the two colours the app already uses for
+   "this dog" and "I want this dog". Reads as warmth rather than as an upsell. */
+.plus-pill {
+  background-image: linear-gradient(135deg, rgb(var(--c-brand)), rgb(var(--c-pink)));
+  transition: filter 0.15s ease, transform 0.15s ease;
+}
+.plus-pill:hover {
+  filter: brightness(1.08);
+}
+.plus-pill.is-active {
+  filter: brightness(1.12);
+  box-shadow: 0 0 0 2px rgb(var(--c-paper)), 0 0 0 4px rgb(var(--c-pink) / 0.5);
+}
+a:active .plus-pill {
+  transform: scale(0.96);
+}
+@media (prefers-reduced-motion: reduce) {
+  .plus-pill,
+  a:active .plus-pill {
+    transition: none;
+    transform: none;
+  }
+}
+</style>
