@@ -5,8 +5,11 @@
 -- warning about the dog unless something names breed stigma and rental policy
 -- as the actual cause.
 --
--- Written to be re-runnable: the SQL editor executes a paste as one
--- transaction, so a single failure rolls back everything after it.
+-- NOTE ON STRUCTURE: statements that reference the new column run through
+-- EXECUTE. The SQL editor resolves a pasted script before running it, so a
+-- plain UPDATE naming risk_category fails on a database where the column is
+-- only created earlier in that same script. Dynamic SQL is parsed at run
+-- time, after the column exists. Safe to run more than once.
 
 do $$ begin
   create type risk_category as enum (
@@ -25,16 +28,24 @@ end $$;
 
 alter table dogs add column if not exists risk_category risk_category;
 
--- Rows that predate the column have no category, which would make the
--- constraint below unaddable. 'capacity' is the honest default: it's the
--- reason that needs no claim about the animal.
-update dogs
-   set risk_category = 'capacity'
- where risk = 'high' and risk_category is null;
+do $$
+begin
+  -- Rows that predate the column have no category, which would make the
+  -- constraint unaddable. 'capacity' is the honest default: it's the one
+  -- reason that makes no claim about the animal.
+  execute $q$
+    update dogs
+       set risk_category = 'capacity'
+     where risk = 'high' and risk_category is null
+  $q$;
 
-alter table dogs drop constraint if exists high_risk_needs_a_category;
-alter table dogs add constraint high_risk_needs_a_category
-  check (risk <> 'high' or risk_category is not null);
+  execute $q$alter table dogs drop constraint if exists high_risk_needs_a_category$q$;
+
+  execute $q$
+    alter table dogs add constraint high_risk_needs_a_category
+      check (risk <> 'high' or risk_category is not null)
+  $q$;
+end $$;
 
 comment on column dogs.risk_category is
   'Drives the adopter-facing explainer. Most categories are circumstantial — '

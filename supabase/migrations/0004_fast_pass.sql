@@ -10,7 +10,10 @@
 -- consented to, editing a profile later can't silently change what was
 -- approved, and there's an audit trail of what the decision was based on.
 --
--- Re-runnable, so a failed paste can simply be pasted again.
+-- Indexes and policies run through EXECUTE for the same reason as 0003: the
+-- editor resolves the whole script before running it, so anything naming a
+-- table created earlier in the same script has to be parsed at run time.
+-- Safe to run more than once.
 
 do $$ begin
   create type fast_pass_state as enum ('pending', 'verified', 'declined', 'withdrawn');
@@ -41,41 +44,44 @@ create table if not exists fast_pass_applications (
   unique (adopter_id, org_id)
 );
 
-create index if not exists fpa_org_queue_idx
-  on fast_pass_applications (org_id, state, submitted_at);
-create index if not exists fpa_adopter_idx
-  on fast_pass_applications (adopter_id);
+do $$
+begin
+  execute $q$create index if not exists fpa_org_queue_idx
+             on fast_pass_applications (org_id, state, submitted_at)$q$;
+  execute $q$create index if not exists fpa_adopter_idx
+             on fast_pass_applications (adopter_id)$q$;
 
-alter table fast_pass_applications enable row level security;
+  execute $q$alter table fast_pass_applications enable row level security$q$;
 
--- Adopter: full control over their own application, including withdrawing it.
-drop policy if exists fpa_adopter_read on fast_pass_applications;
-create policy fpa_adopter_read on fast_pass_applications for select
-  using (auth.uid() = adopter_id);
+  -- Adopter: full control over their own application, including withdrawal.
+  execute $q$drop policy if exists fpa_adopter_read on fast_pass_applications$q$;
+  execute $q$create policy fpa_adopter_read on fast_pass_applications for select
+             using (auth.uid() = adopter_id)$q$;
 
-drop policy if exists fpa_adopter_insert on fast_pass_applications;
-create policy fpa_adopter_insert on fast_pass_applications for insert
-  with check (auth.uid() = adopter_id);
+  execute $q$drop policy if exists fpa_adopter_insert on fast_pass_applications$q$;
+  execute $q$create policy fpa_adopter_insert on fast_pass_applications for insert
+             with check (auth.uid() = adopter_id)$q$;
 
-drop policy if exists fpa_adopter_update on fast_pass_applications;
-create policy fpa_adopter_update on fast_pass_applications for update
-  using (auth.uid() = adopter_id);
+  execute $q$drop policy if exists fpa_adopter_update on fast_pass_applications$q$;
+  execute $q$create policy fpa_adopter_update on fast_pass_applications for update
+             using (auth.uid() = adopter_id)$q$;
 
-drop policy if exists fpa_adopter_delete on fast_pass_applications;
-create policy fpa_adopter_delete on fast_pass_applications for delete
-  using (auth.uid() = adopter_id);
+  execute $q$drop policy if exists fpa_adopter_delete on fast_pass_applications$q$;
+  execute $q$create policy fpa_adopter_delete on fast_pass_applications for delete
+             using (auth.uid() = adopter_id)$q$;
 
--- Org staff: read applications addressed to their org, and rule on them.
--- No insert policy — an org cannot manufacture an application on someone's
--- behalf, which is what makes the adopter's submission the consent record.
-drop policy if exists fpa_org_read on fast_pass_applications;
-create policy fpa_org_read on fast_pass_applications for select
-  using (org_id = my_org_id());
+  -- Org staff: read applications addressed to their org, and rule on them.
+  -- No insert policy — an org cannot manufacture an application on someone's
+  -- behalf, which is what makes the adopter's submission the consent record.
+  execute $q$drop policy if exists fpa_org_read on fast_pass_applications$q$;
+  execute $q$create policy fpa_org_read on fast_pass_applications for select
+             using (org_id = my_org_id())$q$;
 
-drop policy if exists fpa_org_update on fast_pass_applications;
-create policy fpa_org_update on fast_pass_applications for update
-  using (org_id = my_org_id())
-  with check (org_id = my_org_id());
+  execute $q$drop policy if exists fpa_org_update on fast_pass_applications$q$;
+  execute $q$create policy fpa_org_update on fast_pass_applications for update
+             using (org_id = my_org_id())
+             with check (org_id = my_org_id())$q$;
 
-comment on column fast_pass_applications.snapshot is
-  'Frozen copy of the reviewed fields. The org never reads the live profile.';
+  execute $q$comment on column fast_pass_applications.snapshot is
+             'Frozen copy of the reviewed fields. The org never reads the live profile.'$q$;
+end $$;
