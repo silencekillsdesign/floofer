@@ -50,8 +50,22 @@ const city = arg("city");
 const invite = arg("invite");
 const role = arg("role") ?? type;
 
+/* Contact details ride onto every pet this org lists, so an adopter can call
+   a named human instead of hunting for a number. */
+const website = arg("website");
+const contact = arg("contact");
+const contactRole = arg("contact-role");
+const contactPhone = arg("contact-phone");
+const contactEmail = arg("contact-email");
+
 if (!name || !type || !city) {
-  die('Usage: npm run seed:org -- --name "Org name" --type municipal --city "Chicago, IL" [--invite staff@org.org]');
+  die(
+    'Usage: npm run seed:org -- --name "Org name" --type municipal --city "Chicago, IL"\n' +
+      "         optional: --invite staff@org.org\n" +
+      "                   --website shelter.org\n" +
+      '                   --contact "Dana Reyes" --contact-role "Intake coordinator"\n' +
+      '                   --contact-phone "(312) 555-0142" --contact-email intake@shelter.org',
+  );
 }
 if (!VALID_TYPES.includes(type)) {
   die(`--type must be one of: ${VALID_TYPES.join(", ")}`);
@@ -67,15 +81,35 @@ const { data: existing, error: lookupErr } = await db
   .from("orgs").select("id,name").eq("name", name).maybeSingle();
 if (lookupErr) die(`Lookup failed: ${lookupErr.message}`);
 
+/* Only send what was passed, so re-running to set one field doesn't blank
+   the others. Website is stored bare; the app renders the scheme. */
+const contactFields = Object.fromEntries(
+  Object.entries({
+    website: website?.replace(/^https?:\/\//i, ""),
+    contact_name: contact,
+    contact_role: contactRole,
+    contact_phone: contactPhone,
+    contact_email: contactEmail,
+  }).filter(([, v]) => v !== undefined),
+);
+
 let org = existing;
 if (org) {
   console.log(`  • Org already exists — reusing ${org.id}`);
+  if (Object.keys(contactFields).length) {
+    const { error } = await db.from("orgs").update(contactFields).eq("id", org.id);
+    if (error) die(`Could not update contact details: ${error.message}`);
+    console.log(`  ✓ Updated ${Object.keys(contactFields).join(", ")}`);
+  }
 } else {
   const { data, error } = await db
-    .from("orgs").insert({ name, type, city }).select("id,name").single();
+    .from("orgs").insert({ name, type, city, ...contactFields }).select("id,name").single();
   if (error) die(`Could not create org: ${error.message}`);
   org = data;
   console.log(`  ✓ Created org ${org.id}`);
+  if (Object.keys(contactFields).length) {
+    console.log(`  ✓ Set ${Object.keys(contactFields).join(", ")}`);
+  }
 }
 
 if (invite) {
