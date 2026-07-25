@@ -26,6 +26,44 @@ export interface DogPhotoRow {
   position: number;
 }
 
+export type FastPassState = "pending" | "verified" | "declined" | "withdrawn";
+
+/** Frozen copy of the fields a verifier reviews. Narrow on purpose — an org
+    sees what it needs to make the call, not the whole adoption profile. */
+export interface FastPassSnapshot {
+  name: string;
+  phone: string;
+  city: string;
+  dwelling: string;
+  ownership: string;
+  landlordName: string;
+  landlordPhone: string;
+  petsAllowed: string;
+  fencedYard: string;
+  hoursAlone: number;
+  residents: number;
+  childrenAges: string;
+  currentPets: string;
+  vetName: string;
+  vetPhone: string;
+  allowReferenceCheck: boolean;
+  homePhotoCount: number;
+}
+
+export interface FastPassApplication {
+  id: string;
+  adopter_id: string;
+  org_id: string;
+  state: FastPassState;
+  capabilities: string[];
+  response_window: string;
+  snapshot: FastPassSnapshot;
+  submitted_at: string;
+  reviewed_at: string | null;
+  reviewed_by: string | null;
+  reviewer_note: string | null;
+}
+
 export interface DogRow {
   id: string;
   org_id: string;

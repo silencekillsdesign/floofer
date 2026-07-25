@@ -2,8 +2,10 @@
    Floofer has to run with no backend at all — the demo deck, the shareable
    pet pages and the whole portfolio path predate the database and must keep
    working. So nothing calls Supabase without checking `configured` first. */
-import type { Dog, TraitPentagon, UserType } from "~/types";
-import type { AdoptionStatus, DogRow } from "~/types/db";
+import type { Dog, Profile, TraitPentagon, UserType } from "~/types";
+import type {
+  AdoptionStatus, DogRow, FastPassApplication, FastPassState,
+} from "~/types/db";
 
 export interface MyProfile {
   id: string;
@@ -190,9 +192,97 @@ export function useDb() {
     if (error) throw new Error(error.message);
   }
 
+  /* ---------- Fast-Pass verification ---------- */
+
+  /** Submit a Fast-Pass application to one named org. The snapshot is what the
+      org will review — the live profile stays private to its owner. */
+  async function submitFastPass(orgId: string, profile: Profile) {
+    if (!configured.value || !userId.value) throw new Error("Sign in to submit a Fast-Pass.");
+    const fp = profile.fastPass;
+    if (!fp?.capabilities.length) throw new Error("Declare at least one capability first.");
+
+    const a = profile.adoption;
+    const snapshot = {
+      name: profile.name,
+      phone: profile.phone,
+      city: profile.city,
+      dwelling: a.housing.dwelling,
+      ownership: a.housing.ownership,
+      landlordName: a.housing.landlordName,
+      landlordPhone: a.housing.landlordPhone,
+      petsAllowed: a.housing.petsAllowed,
+      fencedYard: a.housing.fencedYard,
+      hoursAlone: a.housing.hoursAlone,
+      residents: a.household.residents,
+      childrenAges: a.household.childrenAges,
+      currentPets: a.vet.currentPets,
+      vetName: a.vet.vetName,
+      vetPhone: a.vet.vetPhone,
+      allowReferenceCheck: a.vet.allowReferenceCheck,
+      homePhotoCount: profile.homePhotos.length,
+    };
+
+    const { error } = await client.from("fast_pass_applications").upsert(
+      {
+        adopter_id: userId.value,
+        org_id: orgId,
+        state: "pending",
+        capabilities: fp.capabilities,
+        response_window: fp.responseWindow,
+        snapshot,
+        submitted_at: new Date().toISOString(),
+        reviewed_at: null,
+        reviewed_by: null,
+        reviewer_note: null,
+      },
+      { onConflict: "adopter_id,org_id" },
+    );
+    if (error) throw new Error(error.message);
+  }
+
+  /** The signed-in org's review queue. */
+  async function fetchFastPassQueue(state: FastPassState = "pending") {
+    if (!configured.value || !userId.value) return [];
+    const { data, error } = await client
+      .from("fast_pass_applications")
+      .select("*")
+      .eq("state", state)
+      .order("submitted_at", { ascending: true });
+    if (error) throw new Error(error.message);
+    return (data ?? []) as FastPassApplication[];
+  }
+
+  /** Rule on an application. A decline carries a note, so it's actionable. */
+  async function reviewFastPass(id: string, state: "verified" | "declined", note?: string) {
+    if (!configured.value || !userId.value) throw new Error("No database configured.");
+    const { error } = await client
+      .from("fast_pass_applications")
+      .update({
+        state,
+        reviewed_at: new Date().toISOString(),
+        reviewed_by: userId.value,
+        reviewer_note: note?.trim() || null,
+      })
+      .eq("id", id);
+    if (error) throw new Error(error.message);
+  }
+
+  /** The adopter's own application, so the card can show where it stands. */
+  async function fetchMyFastPass(): Promise<FastPassApplication | null> {
+    if (!configured.value || !userId.value) return null;
+    const { data, error } = await client
+      .from("fast_pass_applications")
+      .select("*")
+      .eq("adopter_id", userId.value)
+      .maybeSingle();
+    if (error) throw new Error(error.message);
+    return (data as FastPassApplication) ?? null;
+  }
+
   return {
     configured, client, user, userId, toDog,
     fetchDogs, fetchMyOrgDogs, fetchMyProfile,
     createDog, updateDogState, uploadDogPhotos, eraseMyProfile,
+    submitFastPass, fetchFastPassQueue, reviewFastPass, fetchMyFastPass,
   };
 }
