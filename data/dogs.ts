@@ -185,7 +185,10 @@ export const DOGS: Dog[] = [
     medicalNotes: "Mild arthritis — joint supplement with dinner. Senior panel otherwise clear.",
     goodWithCats: "yes", microchipped: false,
     traits: { energy: 2, space: 2, social: 6, independence: 6, training: 2 },
-    risk: "high", riskReason: "Senior — first on list when at capacity", riskCategory: "senior", daysLeft: 7,
+    risk: "high", riskReason: "Senior — kennel closes for intake at 6pm", riskCategory: "senior",
+    /* Demo: an hour-scale window, to exercise Fast-Pass dispatch. Computed at
+       module load so the countdown is always live rather than a stale literal. */
+    criticalUntil: new Date(Date.now() + 9 * 3_600_000).toISOString(),
     source: { type: "municipal", name: "Cook County Animal Care & Control" },
     location: { lat: 41.8987, lng: -87.7274, city: "Chicago (Austin)" },
     adoptionFee: 75,

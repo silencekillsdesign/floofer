@@ -1,5 +1,6 @@
 <script setup lang="ts">
 import { RISK_CATEGORIES } from "~/data/riskCategories";
+import { RESPONSE_WINDOWS } from "~/utils/fastPass";
 
 const route = useRoute();
 const router = useRouter();
@@ -21,6 +22,15 @@ const photoIdx = ref(0);
 const riskInfo = computed(() =>
   dog.value?.riskCategory ? RISK_CATEGORIES[dog.value.riskCategory] : null,
 );
+
+/* Hour-scale window, when one is set. */
+const criticalHours = computed(() => {
+  const until = dog.value?.criticalUntil;
+  if (!until) return null;
+  const h = hoursUntil(until);
+  return Number.isNaN(h) ? null : h;
+});
+const fastPassReady = computed(() => canAnswer(profile.value, dog.value?.riskCategory));
 watch(() => dog.value?.id, () => (photoIdx.value = 0));
 
 /* Shared links carry the dog's face and their deadline — the whole point of
@@ -252,9 +262,31 @@ const compatTags = computed(() => {
     <div v-if="dog.risk === 'high' && !dog.adopted" class="mt-4 p-4 rounded-2xl bg-risk-soft border border-risk/25">
       <p class="font-semibold text-risk text-sm">⚠️ {{ dog.riskReason }}</p>
       <p class="text-sm text-ink-soft mt-0.5">
-        <template v-if="dog.daysLeft != null"><strong>{{ dog.daysLeft }} days</strong> to find a home. </template>
+        <!-- Hours supersede days: "0 days" and "3 hours" are different decisions. -->
+        <template v-if="criticalHours != null"><strong class="text-risk">{{ criticalHours }} hours</strong> to find a home. </template>
+        <template v-else-if="dog.daysLeft != null"><strong>{{ dog.daysLeft }} days</strong> to find a home. </template>
         Liking {{ dog.name }} notifies {{ dog.source.name }} immediately.
       </p>
+
+      <!-- Fast-Pass dispatch: only surfaced when the window is hour-scale and
+           this household has actually been vetted for this kind of emergency. -->
+      <div v-if="criticalHours != null" class="mt-3 p-3 rounded-xl border" :class="fastPassReady ? 'border-safe/40 bg-safe-soft' : 'border-line bg-card'">
+        <p v-if="fastPassReady" class="text-sm font-bold text-safe">⚡ Your Fast-Pass covers this</p>
+        <p v-else class="text-sm font-bold text-ink">⚡ Fast-Pass placements only</p>
+        <p class="text-[12px] text-ink-soft leading-relaxed mt-1">
+          <template v-if="fastPassReady">
+            You're verified for this type of emergency and can collect
+            {{ RESPONSE_WINDOWS.find((w) => w.value === profile.fastPass?.responseWindow)?.label?.toLowerCase() }}.
+            Messaging goes straight to the on-call coordinator.
+          </template>
+          <template v-else>
+            There isn't time to run a landlord check or a vet reference. Only pre-vetted
+            households can take this animal —
+            <NuxtLink to="/account" class="text-brand font-semibold underline">get Fast-Pass ready</NuxtLink>
+            so you're reachable next time.
+          </template>
+        </p>
+      </div>
 
       <!-- The reframe. An adopter reads "pit bull, 200+ days" as a warning
            about the dog; it almost never is. Naming the mechanism is the

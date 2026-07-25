@@ -1,5 +1,6 @@
 import type { RiskCategory } from "~/data/riskCategories";
-export type { RiskCategory };
+import type { FastPass } from "~/utils/fastPass";
+export type { RiskCategory, FastPass };
 
 /** The 5 pentagon axes. Pet side = what the dog needs; user side = what the home offers. */
 export interface TraitPentagon {
@@ -72,6 +73,10 @@ export interface Dog {
   /** Structured "why" behind the risk. Free text can state a reason; only a
       category can teach an adopter that it isn't about the animal. */
   riskCategory?: RiskCategory;
+  /** ISO timestamp for hour-scale emergencies. A neonate's window is measured
+      in feeds, not days — "0 days left" and "3 hours left" are different
+      decisions. When set, this supersedes daysLeft in the UI. */
+  criticalUntil?: string;
   daysLeft?: number;
   adopted?: boolean;
 }
@@ -133,6 +138,8 @@ export interface Profile {
   petPhotos: string[];
   adoption: AdoptionDetails;
   documents: StoredDoc[];
+  /** Pre-vetting so an emergency placement doesn't start the approval clock. */
+  fastPass?: FastPass;
   /** ISO date the adopter finished onboarding; absent = they haven't yet.
       Skipping still stamps it — nobody should meet the wizard twice. */
   onboardedAt?: string;

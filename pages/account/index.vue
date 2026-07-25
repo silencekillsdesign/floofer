@@ -390,6 +390,9 @@ onMounted(() => {
       <!-- ==== Adoption profile (adopter) ==== -->
       <AdoptionProfile v-if="profile.userType === 'adopter'" />
 
+      <!-- ==== Fast-Pass: pre-vetting for hour-scale emergencies ==== -->
+      <FastPassCard v-if="profile.userType === 'adopter'" />
+
       <!-- ==== Adopter: photo gallery placeholder ==== -->
       <section v-if="profile.userType === 'adopter'" class="min-w-0 p-5 bg-card rounded-3xl shadow-card border border-line">
         <h2 class="font-display text-lg font-semibold mb-1">Home photos</h2>
