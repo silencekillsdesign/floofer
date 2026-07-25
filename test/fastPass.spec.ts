@@ -15,13 +15,13 @@ const ready = (over: Partial<Profile> = {}): Profile =>
     adoption: {
       employment: { employer: "", occupation: "", years: "" },
       isStudent: false, isMilitary: false, firstTimeOwner: false,
-      household: { residents: 2, childrenAges: "", allergies: "", caregiver: "Test" },
+      household: { residents: 2, children: [], allergies: "", caregiver: "Test" },
       housing: {
         dwelling: "house", ownership: "own", landlordName: "", landlordPhone: "",
         petsAllowed: "", fencedYard: "yes", hoursAlone: 4, keptWhenAlone: "", traffic: "light",
       },
       vet: {
-        currentPets: "", pastPets: "", petsVaccinated: "", petsFixed: "",
+        pets: [], petsVaccinated: "", petsFixed: "",
         vetName: "Dr Ruiz", vetPhone: "312-555-0199",
         allowReferenceCheck: true, financiallyPrepared: true,
       },

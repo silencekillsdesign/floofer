@@ -52,7 +52,7 @@ const defaultProfile = (): Profile => ({
     isStudent: false,
     isMilitary: false,
     firstTimeOwner: false,
-    household: { residents: 1, childrenAges: "", allergies: "", caregiver: "" },
+    household: { residents: 1, children: [], allergies: "", caregiver: "" },
     housing: {
       dwelling: "",
       ownership: "",
@@ -65,8 +65,7 @@ const defaultProfile = (): Profile => ({
       traffic: "",
     },
     vet: {
-      currentPets: "",
-      pastPets: "",
+      pets: [],
       petsVaccinated: "",
       petsFixed: "",
       vetName: "",
@@ -80,6 +79,48 @@ const defaultProfile = (): Profile => ({
     { name: "Spay-neuter certificate.pdf", date: "May 30, 2026", size: "640 KB", builtin: true },
   ],
 });
+
+const uid = () => Math.random().toString(36).slice(2, 10);
+
+/** Carry forward profiles saved when children and pets were free text.
+    Best-effort: split on obvious separators, keep anything unparseable as a
+    note rather than dropping what someone typed. Runs once — after the first
+    save the arrays are the only source. */
+export function migrateProfile(p: Profile): Profile {
+  const legacy = p.adoption as unknown as {
+    household?: { childrenAges?: string };
+    vet?: { currentPets?: string; pastPets?: string };
+  };
+
+  const h = p.adoption.household;
+  if (!h.children?.length && legacy.household?.childrenAges?.trim()) {
+    h.children = legacy.household.childrenAges
+      .split(/[,;/&]|\band\b/i)
+      .map((s) => parseInt(s.replace(/\D/g, ""), 10))
+      .filter((n) => Number.isFinite(n) && n >= 0 && n < 100)
+      .map((age) => ({ id: uid(), age }));
+  }
+  delete legacy.household?.childrenAges;
+
+  const v = p.adoption.vet;
+  if (!v.pets?.length) {
+    const rows: HouseholdPet[] = [];
+    const add = (text: string | undefined, stillWithMe: boolean) => {
+      if (!text?.trim()) return;
+      for (const chunk of text.split(/[;\n]|,(?=\s*(?:one|a|an|my|\d))/i)) {
+        const t = chunk.trim();
+        if (t) rows.push({ id: uid(), name: t, kind: "", stillWithMe, note: "" });
+      }
+    };
+    add(legacy.vet?.currentPets, true);
+    add(legacy.vet?.pastPets, false);
+    if (rows.length) v.pets = rows;
+  }
+  delete legacy.vet?.currentPets;
+  delete legacy.vet?.pastPets;
+
+  return p;
+}
 
 /** Single reactive store, hydrated from localStorage once on the client. */
 export function useStore() {
@@ -139,7 +180,7 @@ export function useStore() {
         customDogs.value = p.customDogs ?? [];
         // migrate the old "live" value (pre-Petfinder) to its provider name
         dataSource.value = p.dataSource === "live" ? "rescuegroups" : (p.dataSource ?? "demo");
-        if (p.profile) profile.value = { ...defaultProfile(), ...p.profile };
+        if (p.profile) profile.value = migrateProfile({ ...defaultProfile(), ...p.profile });
       }
     } catch {}
 
@@ -333,7 +374,7 @@ export function adoptionCompleteness(p: Profile) {
     { label: "Fenced yard", done: !!d.housing.fencedYard },
     { label: "Where the dog stays when alone", done: !!d.housing.keptWhenAlone.trim() },
     { label: "Employment", done: !!d.employment.employer.trim() || d.isStudent },
-    { label: "Current or past pets", done: d.firstTimeOwner || !!d.vet.currentPets.trim() || !!d.vet.pastPets.trim() },
+    { label: "Current or past pets", done: d.firstTimeOwner || d.vet.pets.length > 0 },
     { label: "Vet reference", done: d.firstTimeOwner || (!!d.vet.vetName.trim() && !!d.vet.vetPhone.trim()) },
     { label: "Reference-check permission", done: d.vet.allowReferenceCheck },
     { label: "Prepared for vet costs", done: d.vet.financiallyPrepared },

@@ -126,6 +126,9 @@ useSeoMeta({ title: "Fast-Pass review — Floofer", robots: "noindex" });
             <p v-if="app.snapshot.currentPets" class="text-xs text-ink-soft mt-2.5">
               <span class="font-bold text-ink">Current pets:</span> {{ app.snapshot.currentPets }}
             </p>
+            <p v-if="app.snapshot.pastPets" class="text-xs text-ink-soft mt-1">
+              <span class="font-bold text-ink">Previous pets:</span> {{ app.snapshot.pastPets }}
+            </p>
 
             <!-- decision -->
             <div class="mt-4 pt-3 border-t border-line/60">

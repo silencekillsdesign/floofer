@@ -5,6 +5,7 @@
    over existing data rather than a parallel copy of it. Questions that map to
    two stored fields (hours alone, experience) are asked ONCE here and fanned
    out on save — see `commit()`. */
+import type { HouseholdChild, HouseholdPet } from "~/types";
 import { DOG_BREEDS } from "~/data/dogs";
 
 const props = defineProps<{ open: boolean }>();
@@ -27,8 +28,8 @@ const d = reactive({
   ownership: "" as "" | "own" | "rent" | "family",
   fencedYard: "" as "" | "yes" | "no",
   residents: 1,
-  childrenAges: "",
-  currentPets: "",
+  children: [] as HouseholdChild[],
+  pets: [] as HouseholdPet[],
   activity: 6,
   hoursAlone: 4,
   experience: 2, // 0 first-timer … 3 pro
@@ -52,8 +53,8 @@ watch(
     d.ownership = p.adoption.housing.ownership;
     d.fencedYard = p.adoption.housing.fencedYard;
     d.residents = p.adoption.household.residents;
-    d.childrenAges = p.adoption.household.childrenAges;
-    d.currentPets = p.adoption.vet.currentPets;
+    d.children = [...p.adoption.household.children];
+    d.pets = [...p.adoption.vet.pets];
     d.activity = p.traits.energy;
     d.hoursAlone = p.adoption.housing.hoursAlone;
     d.experience = p.adoption.firstTimeOwner ? 0 : Math.round((p.traits.training - 1) / 3);
@@ -96,8 +97,8 @@ function derivedSpace() {
 }
 /* Busyness climbs with people, again with kids, again with resident pets. */
 function derivedSocial() {
-  const kids = d.childrenAges.trim() ? 2 : 0;
-  const pets = d.currentPets.trim() ? 1 : 0;
+  const kids = d.children.length ? 2 : 0;
+  const pets = d.pets.some((p) => p.stillWithMe) ? 1 : 0;
   return Math.max(1, Math.min(10, 2 + Math.min(4, d.residents) + kids + pets));
 }
 /* 0h empty → velcro dog is fine (1); 12h+ → needs a genuinely independent dog. */
@@ -131,8 +132,8 @@ function commit() {
      form and as the pentagon axis the matcher scores against. */
   p.adoption.housing.hoursAlone = d.hoursAlone;
   p.adoption.household.residents = d.residents;
-  p.adoption.household.childrenAges = d.childrenAges.trim();
-  p.adoption.vet.currentPets = d.currentPets.trim();
+  p.adoption.household.children = [...d.children];
+  p.adoption.vet.pets = [...d.pets];
   /* Same single answer, second destination — the shelter-facing checkbox. */
   p.adoption.firstTimeOwner = d.experience === 0;
 
@@ -254,12 +255,12 @@ const inputCls =
                 <input id="ob-res" v-model.number="d.residents" type="range" min="1" max="8" step="1" />
               </div>
               <div>
-                <label :class="labelCls" for="ob-kids">Children's ages <span class="normal-case font-medium text-ink-faint">(leave blank if none)</span></label>
-                <input id="ob-kids" v-model="d.childrenAges" :class="inputCls" placeholder="e.g. 6 and 11" />
+                <span :class="labelCls">Children's ages <span class="normal-case font-medium text-ink-faint">(skip if none)</span></span>
+                <ChildrenList v-model="d.children" />
               </div>
               <div>
-                <label :class="labelCls" for="ob-pets">Pets already at home <span class="normal-case font-medium text-ink-faint">(leave blank if none)</span></label>
-                <input id="ob-pets" v-model="d.currentPets" :class="inputCls" placeholder="e.g. one 4yo cat, spayed" />
+                <span :class="labelCls">Pets already at home <span class="normal-case font-medium text-ink-faint">(skip if none)</span></span>
+                <PetsList v-model="d.pets" />
               </div>
             </div>
           </template>

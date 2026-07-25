@@ -214,8 +214,17 @@ export function useDb() {
       fencedYard: a.housing.fencedYard,
       hoursAlone: a.housing.hoursAlone,
       residents: a.household.residents,
-      childrenAges: a.household.childrenAges,
-      currentPets: a.vet.currentPets,
+      /* Flattened for the reviewer, who reads rather than queries. The arrays
+         stay the source of truth; this is a display snapshot. */
+      childrenAges: a.household.children.map((c) => `${c.age}`).sort().join(", "),
+      currentPets: a.vet.pets
+        .filter((p) => p.stillWithMe)
+        .map((p) => [p.name, p.kind].filter(Boolean).join(" — "))
+        .join("; "),
+      pastPets: a.vet.pets
+        .filter((p) => !p.stillWithMe)
+        .map((p) => [p.name, p.kind, p.note].filter(Boolean).join(" — "))
+        .join("; "),
       vetName: a.vet.vetName,
       vetPhone: a.vet.vetPhone,
       allowReferenceCheck: a.vet.allowReferenceCheck,

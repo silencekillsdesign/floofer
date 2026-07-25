@@ -71,10 +71,10 @@ const DWELLINGS = [
               <label :class="labelCls" for="ap-residents">People in household</label>
               <input id="ap-residents" v-model.number="a.household.residents" type="number" min="1" max="20" :class="inputCls" />
             </div>
-            <div>
-              <label :class="labelCls" for="ap-children">Children's ages (if any)</label>
-              <input id="ap-children" v-model="a.household.childrenAges" :class="inputCls" placeholder="e.g. 6 and 9 — or none" />
-            </div>
+          </div>
+          <div>
+            <span :class="labelCls">Children's ages (if any)</span>
+            <ChildrenList v-model="a.household.children" />
           </div>
           <div>
             <label :class="labelCls" for="ap-allergies">Any allergies in the household?</label>
@@ -208,12 +208,8 @@ const DWELLINGS = [
         </summary>
         <div class="pb-4 space-y-3.5">
           <div>
-            <label :class="labelCls" for="ap-current-pets">Pets currently in your household</label>
-            <textarea id="ap-current-pets" v-model="a.vet.currentPets" rows="2" :class="inputCls" placeholder="e.g. Miso, 4yo tabby cat, spayed & vaccinated" />
-          </div>
-          <div>
-            <label :class="labelCls" for="ap-past-pets">Pets you've owned before (and where they are now)</label>
-            <textarea id="ap-past-pets" v-model="a.vet.pastPets" rows="2" :class="inputCls" placeholder="e.g. Rex, lab mix, passed of old age in 2022" />
+            <span :class="labelCls">Your pets, now and before</span>
+            <PetsList v-model="a.vet.pets" />
           </div>
           <div class="grid grid-cols-1 sm:grid-cols-2 gap-3">
             <div>

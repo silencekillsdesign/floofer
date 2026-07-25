@@ -4,6 +4,7 @@ import {
   applyFilters,
   defaultFilters,
   lifeStage,
+  migrateProfile,
   milesFrom,
   scoreMatch,
 } from "~/composables/useStore";
@@ -136,8 +137,8 @@ describe("milesFrom / lifeStage", () => {
   });
 });
 
-describe("adoptionCompleteness", () => {
-  const blank = (): Profile => ({
+/* Shared by the completeness and migration suites. */
+const blank = (): Profile => ({
     userType: "adopter",
     name: "Test", email: "t@example.com", phone: "", city: "Chicago, IL",
     traits: HOME_LIKE(),
@@ -145,18 +146,19 @@ describe("adoptionCompleteness", () => {
     adoption: {
       employment: { employer: "", occupation: "", years: "" },
       isStudent: false, isMilitary: false, firstTimeOwner: false,
-      household: { residents: 1, childrenAges: "", allergies: "", caregiver: "" },
+      household: { residents: 1, children: [], allergies: "", caregiver: "" },
       housing: {
         dwelling: "", ownership: "", landlordName: "", landlordPhone: "",
         petsAllowed: "", fencedYard: "", hoursAlone: 4, keptWhenAlone: "", traffic: "",
       },
       vet: {
-        currentPets: "", pastPets: "", petsVaccinated: "", petsFixed: "",
+        pets: [], petsVaccinated: "", petsFixed: "",
         vetName: "", vetPhone: "", allowReferenceCheck: false, financiallyPrepared: false,
       },
-    },
-  });
+  },
+});
 
+describe("adoptionCompleteness", () => {
   it("starts at 0% and lists what's missing", () => {
     const { pct, missing } = adoptionCompleteness(blank());
     expect(pct).toBe(0);
@@ -195,10 +197,59 @@ describe("adoptionCompleteness", () => {
     };
     p.adoption.employment.employer = "Floofer";
     p.adoption.vet = {
-      ...p.adoption.vet, currentPets: "Miso the cat",
+      ...p.adoption.vet,
+      pets: [{ id: "p1", name: "Miso", kind: "Cat", stillWithMe: true, note: "" }],
       vetName: "Lakeview Animal Clinic", vetPhone: "(773) 555-0142",
       allowReferenceCheck: true, financiallyPrepared: true,
     };
     expect(adoptionCompleteness(p).pct).toBe(100);
+  });
+});
+
+/* Children and pets used to be free text. Nobody should lose what they typed
+   because the field became a list. */
+describe("migrateProfile", () => {
+  const legacy = (household: any, vet: any) => {
+    const p = blank();
+    Object.assign(p.adoption.household, household);
+    Object.assign(p.adoption.vet, vet);
+    return migrateProfile(p);
+  };
+
+  it("splits written ages into separate children", () => {
+    const p = legacy({ childrenAges: "6 and 11" }, {});
+    expect(p.adoption.household.children.map((c) => c.age)).toEqual([6, 11]);
+  });
+
+  it("handles a single age and commas alike", () => {
+    expect(legacy({ childrenAges: "4" }, {}).adoption.household.children).toHaveLength(1);
+    expect(legacy({ childrenAges: "2, 5, 9" }, {}).adoption.household.children).toHaveLength(3);
+  });
+
+  it("keeps current and past pets on the right side of the line", () => {
+    const p = legacy({}, { currentPets: "Miso the cat", pastPets: "Rex, lab mix, passed 2022" });
+    const pets = p.adoption.vet.pets;
+    expect(pets.some((x) => x.stillWithMe && /Miso/.test(x.name))).toBe(true);
+    expect(pets.some((x) => !x.stillWithMe && /Rex/.test(x.name))).toBe(true);
+  });
+
+  it("preserves text it can't parse rather than dropping it", () => {
+    const p = legacy({}, { currentPets: "a very old tortoise, name unknown" });
+    expect(p.adoption.vet.pets.length).toBeGreaterThan(0);
+    expect(p.adoption.vet.pets[0].name).toContain("tortoise");
+  });
+
+  it("leaves an already-migrated profile alone", () => {
+    const p = blank();
+    p.adoption.household.children = [{ id: "x", age: 8 }];
+    const out = migrateProfile(p);
+    expect(out.adoption.household.children).toEqual([{ id: "x", age: 8 }]);
+  });
+
+  it("drops the legacy fields once migrated", () => {
+    const p = legacy({ childrenAges: "7" }, { currentPets: "Miso" });
+    const raw = p.adoption as any;
+    expect(raw.household.childrenAges).toBeUndefined();
+    expect(raw.vet.currentPets).toBeUndefined();
   });
 });

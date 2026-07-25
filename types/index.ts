@@ -81,6 +81,26 @@ export interface Dog {
   adopted?: boolean;
 }
 
+/** One child in the household. Age is the only field that affects matching —
+    a dog flagged "good with older kids" is a different answer at 4 than 14. */
+export interface HouseholdChild {
+  id: string;
+  age: number;
+}
+
+/** One pet, current or previous. Kept as records rather than prose: a rescue
+    scanning "Rex, lab mix, passed of old age in 2022" can't tell one pet from
+    three, and neither can the app. */
+export interface HouseholdPet {
+  id: string;
+  name: string;
+  kind: string;
+  stillWithMe: boolean;
+  /** Where they are now, when they're no longer with you. This is the field
+      rescues actually read — it's how they learn what happens to your animals. */
+  note: string;
+}
+
 /* Adoption-application details, modeled on a standard humane-society dog
    adoption form. Only pre-adoption facts live here — per-dog questions
    (why this dog, signatures) belong to the application moment. */
@@ -89,7 +109,12 @@ export interface AdoptionDetails {
   isStudent: boolean;
   isMilitary: boolean;
   firstTimeOwner: boolean;
-  household: { residents: number; childrenAges: string; allergies: string; caregiver: string };
+  household: {
+    residents: number;
+    children: HouseholdChild[];
+    allergies: string;
+    caregiver: string;
+  };
   housing: {
     dwelling: "" | "house" | "apartment" | "condo" | "farm" | "other";
     ownership: "" | "own" | "rent" | "family";
@@ -102,8 +127,9 @@ export interface AdoptionDetails {
     traffic: "" | "light" | "moderate" | "heavy";
   };
   vet: {
-    currentPets: string;
-    pastPets: string;
+    /** Current and previous animals in one list — they're the same kind of
+        record, and splitting them made people re-enter the same pet twice. */
+    pets: HouseholdPet[];
     petsVaccinated: "" | "yes" | "no";
     petsFixed: "" | "yes" | "no";
     vetName: string;

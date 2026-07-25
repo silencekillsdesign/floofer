@@ -44,6 +44,7 @@ export interface FastPassSnapshot {
   residents: number;
   childrenAges: string;
   currentPets: string;
+  pastPets: string;
   vetName: string;
   vetPhone: string;
   allowReferenceCheck: boolean;
