@@ -42,7 +42,8 @@ const defaultProfile = (): Profile => ({
   name: "CJ Williams",
   email: "cj@silencekillsdesign.com",
   phone: "",
-  address: { street: "", street2: "", city: "Chicago", state: "IL", postalCode: "" },
+  /* City matches a CITY_OPTIONS value so the onboarding picker resolves it. */
+  address: { street: "", street2: "", city: "Chicago (Loop)", state: "IL", postalCode: "" },
   org: { orgName: "", website: "", contactName: "", contactRole: "", contactPhone: "", contactEmail: "" },
   traits: { energy: 6, space: 4, social: 7, independence: 6, training: 5 },
   payment: { brand: "Visa", last4: "4242", exp: "08/28" },
@@ -422,15 +423,25 @@ export function scoreMatch(pet: TraitPentagon, user: TraitPentagon): number {
 /** Demo home base: Chicago Loop. */
 export const HOME = { lat: 41.8781, lng: -87.6298 };
 
-export function milesFrom(d: Dog): number {
+interface Point {
+  lat: number;
+  lng: number;
+}
+
+/** Great-circle miles between two points. */
+export function milesBetween(a: Point, b: Point): number {
   const R = 3958.8;
   const toRad = (x: number) => (x * Math.PI) / 180;
-  const dLat = toRad(d.location.lat - HOME.lat);
-  const dLng = toRad(d.location.lng - HOME.lng);
-  const a =
+  const dLat = toRad(b.lat - a.lat);
+  const dLng = toRad(b.lng - a.lng);
+  const h =
     Math.sin(dLat / 2) ** 2 +
-    Math.cos(toRad(HOME.lat)) * Math.cos(toRad(d.location.lat)) * Math.sin(dLng / 2) ** 2;
-  return Math.round(R * 2 * Math.atan2(Math.sqrt(a), Math.sqrt(1 - a)));
+    Math.cos(toRad(a.lat)) * Math.cos(toRad(b.lat)) * Math.sin(dLng / 2) ** 2;
+  return R * 2 * Math.atan2(Math.sqrt(h), Math.sqrt(1 - h));
+}
+
+export function milesFrom(d: Dog): number {
+  return Math.round(milesBetween(HOME, d.location));
 }
 
 /* ---------- Shared filters ---------- */

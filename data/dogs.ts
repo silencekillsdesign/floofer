@@ -255,15 +255,15 @@ export { DOG_BREEDS } from "~/data/breeds";
 
 /** Chicago-area placement locations for new listings. */
 export const CITY_OPTIONS = [
-  { city: "Chicago (Loop)", lat: 41.8781, lng: -87.6298 },
-  { city: "Chicago (Austin)", lat: 41.8987, lng: -87.7274 },
-  { city: "Chicago (Lakeview)", lat: 41.9214, lng: -87.6513 },
-  { city: "Chicago (Pilsen)", lat: 41.8369, lng: -87.6847 },
-  { city: "Chicago (Hyde Park)", lat: 41.7959, lng: -87.5917 },
-  { city: "Chicago (Englewood)", lat: 41.7508, lng: -87.6416 },
-  { city: "Evanston", lat: 42.0451, lng: -87.6877 },
-  { city: "Oak Park", lat: 41.885, lng: -87.7845 },
-  { city: "Naperville", lat: 41.7658, lng: -88.1535 },
-  { city: "Des Plaines", lat: 41.9742, lng: -87.9073 },
-  { city: "Highland Park", lat: 42.1817, lng: -87.8003 },
+  { city: "Chicago (Loop)", state: "IL", lat: 41.8781, lng: -87.6298 },
+  { city: "Chicago (Austin)", state: "IL", lat: 41.8987, lng: -87.7274 },
+  { city: "Chicago (Lakeview)", state: "IL", lat: 41.9214, lng: -87.6513 },
+  { city: "Chicago (Pilsen)", state: "IL", lat: 41.8369, lng: -87.6847 },
+  { city: "Chicago (Hyde Park)", state: "IL", lat: 41.7959, lng: -87.5917 },
+  { city: "Chicago (Englewood)", state: "IL", lat: 41.7508, lng: -87.6416 },
+  { city: "Evanston", state: "IL", lat: 42.0451, lng: -87.6877 },
+  { city: "Oak Park", state: "IL", lat: 41.885, lng: -87.7845 },
+  { city: "Naperville", state: "IL", lat: 41.7658, lng: -88.1535 },
+  { city: "Des Plaines", state: "IL", lat: 41.9742, lng: -87.9073 },
+  { city: "Highland Park", state: "IL", lat: 42.1817, lng: -87.8003 },
 ];

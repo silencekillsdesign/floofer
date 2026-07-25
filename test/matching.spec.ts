@@ -3,12 +3,14 @@ import {
   adoptionCompleteness,
   applyFilters,
   defaultFilters,
+  HOME,
   lifeStage,
   migrateProfile,
+  milesBetween,
   milesFrom,
   scoreMatch,
 } from "~/composables/useStore";
-import { DOGS } from "~/data/dogs";
+import { CITY_OPTIONS, DOGS } from "~/data/dogs";
 import type { Dog, Filters, Profile, TraitPentagon } from "~/types";
 import { cityLine, formatAddress } from "~/types";
 
@@ -121,6 +123,49 @@ describe("applyFilters", () => {
       (d) => d.source.type === "shelter" && d.risk === "high" && d.riskReason?.includes("capacity"),
     );
     expect(noKillWithClock).toEqual([]);
+  });
+});
+
+/* Onboarding's "use my location" resolves coordinates to a listed area. Getting
+   this wrong drops someone into the wrong city's deck without telling them. */
+describe("milesBetween / nearest area", () => {
+  const nearest = (lat: number, lng: number) =>
+    CITY_OPTIONS.map((c) => ({ c, mi: milesBetween({ lat, lng }, c) }))
+      .sort((a, b) => a.mi - b.mi)[0];
+
+  it("is zero for the same point", () => {
+    expect(milesBetween(HOME, HOME)).toBe(0);
+  });
+
+  it("is symmetric", () => {
+    const a = { lat: 41.88, lng: -87.63 };
+    const b = { lat: 42.05, lng: -87.69 };
+    expect(milesBetween(a, b)).toBeCloseTo(milesBetween(b, a), 6);
+  });
+
+  it("matches a known distance — the Loop to Evanston is about 12 miles", () => {
+    const mi = milesBetween(HOME, { lat: 42.0451, lng: -87.6877 });
+    expect(mi).toBeGreaterThan(10);
+    expect(mi).toBeLessThan(14);
+  });
+
+  it("resolves coordinates to the closest listed area", () => {
+    // Standing in Evanston
+    expect(nearest(42.0451, -87.6877).c.city).toBe("Evanston");
+    // Standing in Naperville
+    expect(nearest(41.7658, -88.1535).c.city).toBe("Naperville");
+  });
+
+  /* Someone in Denver must not be silently filed under Naperville. */
+  it("puts a far-away coordinate outside the service radius", () => {
+    const denver = nearest(39.7392, -104.9903);
+    expect(denver.mi).toBeGreaterThan(60);
+  });
+
+  it("keeps every listed area inside the service radius of at least one match", () => {
+    for (const c of CITY_OPTIONS) {
+      expect(nearest(c.lat, c.lng).mi).toBeLessThan(1);
+    }
   });
 });
 

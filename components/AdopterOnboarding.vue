@@ -6,8 +6,7 @@
    two stored fields (hours alone, experience) are asked ONCE here and fanned
    out on save — see `commit()`. */
 import type { HouseholdChild, HouseholdPet } from "~/types";
-import { cityLine } from "~/types";
-import { DOG_BREEDS } from "~/data/dogs";
+import { CITY_OPTIONS, DOG_BREEDS } from "~/data/dogs";
 
 const props = defineProps<{ open: boolean }>();
 const emit = defineEmits<{ close: [] }>();
@@ -48,9 +47,9 @@ watch(
     step.value = 0;
     const p = profile.value;
     d.name = p.name;
-    /* Onboarding stays light — one location field. The full postal address is
-       collected later, in the adoption profile, where it's actually needed. */
-    d.city = cityLine(p.address);
+    /* Onboarding picks a service area, not an address. Fall back to the first
+       listed area so the select is never showing an unmatched value. */
+    d.city = CITY_OPTIONS.find((c) => c.city === p.address.city)?.city ?? CITY_OPTIONS[0].city;
     d.phone = p.phone;
     d.dwelling = p.adoption.housing.dwelling;
     d.ownership = p.adoption.housing.ownership;
@@ -66,6 +65,54 @@ watch(
   },
   { immediate: true },
 );
+
+/* Onboarding collects a service area, never a street address — that belongs in
+   the adoption profile, at the point a shelter actually needs it. */
+const cityOptions = CITY_OPTIONS.map((c) => ({
+  value: c.city,
+  label: c.city,
+  hint: c.state,
+  icon: "📍",
+}));
+
+type GeoState = "idle" | "asking" | "ok" | "denied" | "unsupported" | "outOfArea";
+const geo = ref<GeoState>("idle");
+
+/** Furthest a coordinate can sit from a listed area and still be matched to it.
+    Beyond this we say so, rather than quietly dropping someone in Naperville. */
+const SERVICE_RADIUS_MI = 60;
+
+function useMyLocation() {
+  if (!import.meta.client || !navigator.geolocation) {
+    geo.value = "unsupported";
+    return;
+  }
+  geo.value = "asking";
+  navigator.geolocation.getCurrentPosition(
+    (pos) => {
+      const here = { lat: pos.coords.latitude, lng: pos.coords.longitude };
+      let best = CITY_OPTIONS[0];
+      let bestMiles = Infinity;
+      for (const c of CITY_OPTIONS) {
+        const miles = milesBetween(here, c);
+        if (miles < bestMiles) {
+          bestMiles = miles;
+          best = c;
+        }
+      }
+      if (bestMiles > SERVICE_RADIUS_MI) {
+        geo.value = "outOfArea";
+        return;
+      }
+      d.city = best.city;
+      geo.value = "ok";
+    },
+    (err) => {
+      geo.value = err.code === err.PERMISSION_DENIED ? "denied" : "unsupported";
+    },
+    { timeout: 10_000, maximumAge: 300_000 },
+  );
+}
 
 const EXPERIENCE = [
   { label: "First-time owner", hint: "This would be my first dog" },
@@ -124,10 +171,10 @@ const preview = computed(() => ({
 function commit() {
   const p = profile.value;
   p.name = d.name.trim() || p.name;
-  if (d.city.trim()) {
-    const [city, state] = d.city.split(",").map((s) => s.trim());
-    p.address = { ...p.address, city: city || p.address.city, state: state || p.address.state };
-  }
+  /* Only the area is written — street, unit and ZIP stay untouched, so a
+     returning user who already filled their address doesn't lose it. */
+  const area = CITY_OPTIONS.find((c) => c.city === d.city);
+  if (area) p.address = { ...p.address, city: area.city, state: area.state };
   p.phone = d.phone.trim();
   p.traits = { ...preview.value };
 
@@ -216,9 +263,37 @@ const inputCls =
                 <input id="ob-name" v-model="d.name" :class="inputCls" placeholder="First and last" />
               </div>
               <div>
-                <label :class="labelCls" for="ob-city">Where you live</label>
-                <input id="ob-city" v-model="d.city" :class="inputCls" placeholder="Chicago, IL" />
-                <p class="text-[11px] text-ink-faint mt-1.5">Sets your search radius. Nothing is shared until you message a rescue.</p>
+                <span :class="labelCls">Where you live</span>
+                <AppSelect v-model="d.city" :options="cityOptions" aria-label="Your area" searchable />
+
+                <button
+                  type="button"
+                  class="w-full mt-2 flex items-center justify-center gap-2 px-4 py-2.5 rounded-xl border border-line bg-paper-warm text-sm font-bold text-ink-soft hover:border-ink-faint transition-colors disabled:opacity-60"
+                  :disabled="geo === 'asking'"
+                  @click="useMyLocation"
+                >
+                  <span aria-hidden="true">📍</span>
+                  {{ geo === "asking" ? "Checking…" : "Use my location" }}
+                </button>
+
+                <!-- Every branch says what happened and what to do next; a
+                     silent failure here just looks like a broken button. -->
+                <p v-if="geo === 'ok'" class="text-[11px] font-semibold text-safe mt-1.5">
+                  ✓ Set to {{ d.city }}.
+                </p>
+                <p v-else-if="geo === 'denied'" class="text-[11px] text-ink-faint mt-1.5 leading-relaxed">
+                  Location is blocked for this site. Pick your area above instead — it works exactly the same.
+                </p>
+                <p v-else-if="geo === 'outOfArea'" class="text-[11px] text-ink-faint mt-1.5 leading-relaxed">
+                  You're outside the areas Floofer covers so far. Pick the closest one to browse, and we'll
+                  reach further as more shelters join.
+                </p>
+                <p v-else-if="geo === 'unsupported'" class="text-[11px] text-ink-faint mt-1.5 leading-relaxed">
+                  Couldn't read your location. Pick your area above instead.
+                </p>
+                <p v-else class="text-[11px] text-ink-faint mt-1.5 leading-relaxed">
+                  Sets your search radius. Your address isn't needed until you apply for a dog.
+                </p>
               </div>
               <div>
                 <label :class="labelCls" for="ob-phone">Phone <span class="normal-case font-medium text-ink-faint">(optional)</span></label>
