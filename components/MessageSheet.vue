@@ -7,7 +7,28 @@ import type { Dog } from "~/types";
 const props = defineProps<{ open: boolean; dog: Dog }>();
 const emit = defineEmits<{ close: [] }>();
 
-const { profile } = useStore();
+const { profile, dataSource } = useStore();
+const sending = ref(false);
+/* The real outcome of the send, so the confirmation screen can't lie. */
+const delivery = ref<{ delivered: boolean; reason?: string } | null>(null);
+
+async function submit() {
+  sending.value = true;
+  delivery.value =
+    dataSource.value === "floofer"
+      ? await notifyShelter({
+          kind: "message",
+          dogId: props.dog.id,
+          fromName: name.value.trim(),
+          fromEmail: email.value.trim(),
+          body: message.value.trim(),
+          /* Only travels when the adopter ticked consent. */
+          summary: consent.value ? highlights.value.map((h) => h.label) : [],
+        })
+      : null;
+  sending.value = false;
+  sent.value = true;
+}
 
 const name = ref("");
 const email = ref("");
@@ -161,7 +182,14 @@ const labelCls = "block text-xs font-semibold uppercase tracking-wide text-ink-s
             <p class="text-sm text-ink-soft">
               {{ dog.source.name }} will reach out at <strong class="text-ink font-semibold">{{ email }}</strong> to set up a meet with {{ dog.name }}.
             </p>
-            <p v-if="isAdopter" class="text-xs text-ink-faint mt-2">Your adoption profile summary went along with it.</p>
+            <p v-if="isAdopter && consent" class="text-xs text-ink-faint mt-2">Your adoption profile summary went along with it.</p>
+            <p v-if="delivery?.delivered" class="text-[12px] font-semibold text-safe mt-2">
+              ✓ Emailed to {{ dog.source.name }}
+            </p>
+            <p v-else-if="delivery && !delivery.delivered" class="text-[12px] text-ink-faint mt-2 leading-relaxed">
+              We couldn't email them automatically.
+              <template v-if="dog.source.phone">Their number is on {{ dog.name }}'s page.</template>
+            </p>
           </div>
         </div>
 
@@ -181,10 +209,10 @@ const labelCls = "block text-xs font-semibold uppercase tracking-wide text-ink-s
             v-if="!sent"
             class="w-full py-3.5 rounded-full font-semibold shadow-glow transition-colors"
             :class="canSend ? 'bg-brand text-white hover:bg-brand-deep' : 'bg-paper-warm text-ink-faint cursor-not-allowed'"
-            :disabled="!canSend"
-            @click="sent = true"
+            :disabled="!canSend || sending"
+            @click="submit"
           >
-            Send message
+            {{ sending ? "Sending…" : "Send message" }}
           </button>
           <button
             v-else

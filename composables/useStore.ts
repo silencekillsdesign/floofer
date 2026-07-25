@@ -149,6 +149,25 @@ export function migrateProfile(p: Profile): Profile {
   return p;
 }
 
+/** Ask the server to email the listing organisation.
+    Returns what actually happened, so callers can tell an adopter the truth
+    rather than showing a success screen for an email nobody sent. */
+export async function notifyShelter(payload: {
+  kind: "message" | "play-date";
+  dogId: string;
+  fromName: string;
+  fromEmail: string;
+  body?: string;
+  slots?: string[];
+  summary?: string[];
+}): Promise<{ delivered: boolean; reason?: string; org?: string | null }> {
+  try {
+    return await $fetch("/api/notify", { method: "POST", body: payload });
+  } catch (e: any) {
+    return { delivered: false, reason: e?.data?.statusMessage ?? "failed" };
+  }
+}
+
 /** Single reactive store, hydrated from localStorage once on the client. */
 export function useStore() {
   const liked = useState<string[]>("rm-liked", () => []);

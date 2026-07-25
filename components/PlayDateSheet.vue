@@ -11,7 +11,7 @@ import {
 const props = defineProps<{ open: boolean; dog: Dog }>();
 const emit = defineEmits<{ close: [] }>();
 
-const { profile, requestPlayDate, playDateFor } = useStore();
+const { profile, requestPlayDate, playDateFor, dataSource } = useStore();
 
 const slots = ref<PlayDateSlot[]>([]);
 const note = ref("");
@@ -54,12 +54,33 @@ function toggle(date: string, part: DayPart) {
   error.value = "";
 }
 
-function send() {
+const sending = ref(false);
+/* What actually happened to the email, so the confirmation can be honest
+   rather than showing a tick for a message nobody received. */
+const delivery = ref<{ delivered: boolean; reason?: string } | null>(null);
+
+async function send() {
   if (!slots.value.length) {
     error.value = "Pick at least one time that works for you.";
     return;
   }
+  sending.value = true;
   requestPlayDate(props.dog.id, slots.value, note.value.trim());
+
+  /* Demo listings have no shelter behind them — only notify for real ones. */
+  delivery.value =
+    dataSource.value === "floofer"
+      ? await notifyShelter({
+          kind: "play-date",
+          dogId: props.dog.id,
+          fromName: profile.value.name || "A Floofer adopter",
+          fromEmail: profile.value.email,
+          body: note.value.trim(),
+          slots: slots.value.map(formatSlot),
+        })
+      : null;
+
+  sending.value = false;
   sent.value = true;
 }
 
@@ -166,6 +187,15 @@ const cellCls = (on: boolean) =>
             <h3 class="font-display text-xl font-semibold mb-1">Asked! 🐾</h3>
             <p class="text-sm text-ink-soft leading-relaxed">
               {{ dog.source.name }} will confirm one of your windows. You'll see it on {{ dog.name }}'s page.
+            </p>
+            <!-- Never claim an email landed when it didn't. -->
+            <p v-if="delivery?.delivered" class="text-[12px] font-semibold text-safe mt-2">
+              ✓ Emailed to {{ dog.source.name }}
+            </p>
+            <p v-else-if="delivery && !delivery.delivered" class="text-[12px] text-ink-faint mt-2 leading-relaxed">
+              We couldn't email them automatically.
+              <template v-if="dog.source.phone">Their number is on {{ dog.name }}'s page — a call gets there faster anyway.</template>
+              <template v-else>Your request is saved and visible to them in Floofer.</template>
             </p>
           </div>
         </div>

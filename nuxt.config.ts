@@ -118,6 +118,10 @@ export default defineNuxtConfig({
     rescuegroupsApiKey: "",
     petfinderApiKey: "",
     petfinderSecret: "",
+    /* Outbound email. Absent = the app still runs; /api/notify reports that
+       nothing was delivered instead of pretending it was. */
+    resendApiKey: "",
+    mailFrom: "Floofer <notifications@floofer.app>",
     public: {
       // optional: enables error reporting when set
       sentryDsn: "",
