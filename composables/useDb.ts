@@ -5,8 +5,9 @@
 import type { Dog, Profile, TraitPentagon, UserType } from "~/types";
 import { cityLine, formatAddress } from "~/types";
 import type {
-  AdoptionStatus, DogRow, FastPassApplication, FastPassState,
+  AdoptionStatus, DogRow, FastPassApplication, FastPassState, PlayDateRow,
 } from "~/types/db";
+import type { PlayDateSlot, PlayDateState } from "~/utils/playDates";
 
 export interface MyProfile {
   id: string;
@@ -291,8 +292,67 @@ export function useDb() {
     return (data as FastPassApplication) ?? null;
   }
 
+  /* ---------- Play dates ---------- */
+
+  /** Ask to meet a dog. org_id is copied from the listing rather than taken
+      from the caller, so a request always lands with whoever holds the animal. */
+  async function createPlayDate(dogId: string, slots: PlayDateSlot[], note: string) {
+    if (!configured.value || !userId.value) throw new Error("Sign in to request a play date.");
+    const { data: dog, error: dogErr } = await client
+      .from("dogs").select("org_id").eq("id", dogId).maybeSingle();
+    if (dogErr) throw new Error(dogErr.message);
+    if (!dog) throw new Error("That listing no longer exists.");
+
+    const { error } = await client.from("play_dates").upsert(
+      {
+        dog_id: dogId,
+        adopter_id: userId.value,
+        org_id: (dog as { org_id: string }).org_id,
+        state: "requested",
+        proposed_slots: slots,
+        confirmed_slot: null,
+        adopter_note: note || null,
+        org_note: null,
+      },
+      { onConflict: "dog_id,adopter_id" },
+    );
+    if (error) throw new Error(error.message);
+  }
+
+  /** The signed-in org's play-date queue, newest request last. */
+  async function fetchPlayDates(state: PlayDateState = "requested") {
+    if (!configured.value || !userId.value) return [];
+    const { data, error } = await client
+      .from("play_dates")
+      .select("*, dogs(id,name,breed), profiles!play_dates_adopter_id_fkey(name,phone,email)")
+      .eq("state", state)
+      .order("created_at", { ascending: true });
+    if (error) throw new Error(error.message);
+    return (data ?? []) as PlayDateRow[];
+  }
+
+  /** Confirm one of the offered windows, or decline with a reason. */
+  async function answerPlayDate(
+    id: string,
+    state: "confirmed" | "declined",
+    opts: { slot?: PlayDateSlot; note?: string; location?: string } = {},
+  ) {
+    if (!configured.value) throw new Error("No database configured.");
+    const { error } = await client
+      .from("play_dates")
+      .update({
+        state,
+        confirmed_slot: state === "confirmed" ? (opts.slot ?? null) : null,
+        location: opts.location?.trim() || null,
+        org_note: opts.note?.trim() || null,
+      })
+      .eq("id", id);
+    if (error) throw new Error(error.message);
+  }
+
   return {
     configured, client, user, userId, toDog,
+    createPlayDate, fetchPlayDates, answerPlayDate,
     fetchDogs, fetchMyOrgDogs, fetchMyProfile,
     createDog, updateDogState, uploadDogPhotos, eraseMyProfile,
     submitFastPass, fetchFastPassQueue, reviewFastPass, fetchMyFastPass,

@@ -1,10 +1,11 @@
 <script setup lang="ts">
 import { RISK_CATEGORIES } from "~/data/riskCategories";
 import { RESPONSE_WINDOWS } from "~/utils/fastPass";
+import { STATE_UI, formatSlot, slotKey } from "~/utils/playDates";
 
 const route = useRoute();
 const router = useRouter();
-const { dogs, profile, matchPct, like, pass, liked, applied, submitApplication } = useStore();
+const { dogs, profile, matchPct, like, pass, liked, applied, submitApplication, playDateFor } = useStore();
 
 /* Like → Rescue → Message: liking stays on this page; Rescue registers intent;
    Message opens the contact sheet to the listing org. */
@@ -14,6 +15,7 @@ const isPartnerOrg = computed(() =>
   ["shelter", "municipal", "retirement"].includes(profile.value.userType),
 );
 const messageOpen = ref(false);
+const playDateOpen = ref(false);
 
 const dog = computed(() => dogs.value.find((d) => d.id === route.params.id));
 const photoIdx = ref(0);
@@ -31,6 +33,10 @@ const criticalHours = computed(() => {
   return Number.isNaN(h) ? null : h;
 });
 const fastPassReady = computed(() => canAnswer(profile.value, dog.value?.riskCategory));
+
+/* Meeting the dog is the step that changes minds about a kennel-stressed
+   animal, so its status sits on the page rather than buried in a list. */
+const playDate = computed(() => (dog.value ? playDateFor(dog.value.id) : null));
 watch(() => dog.value?.id, () => (photoIdx.value = 0));
 
 /* Shared links carry the dog's face and their deadline — the whole point of
@@ -397,6 +403,36 @@ const compatTags = computed(() => {
         <strong class="text-ink">Open-admission shelter.</strong> They take every animal brought to
         them, so they can run out of room. Dogs here are euthanized for space — the countdown is real.
       </p>
+      <!-- Meet-and-greet. A kennel-stressed dog reads as a different animal in
+           a yard, so getting to the meeting is most of the work. -->
+      <div v-if="!dog.adopted" class="mt-3.5 pt-3.5 border-t border-line/60">
+        <template v-if="!playDate">
+          <button
+            class="w-full flex items-center justify-center gap-2 py-3 rounded-full bg-paper-warm border border-line text-sm font-bold hover:border-brand hover:text-brand transition-colors"
+            @click="playDateOpen = true"
+          >
+            <span aria-hidden="true">📅</span> Ask to meet {{ dog.name }}
+          </button>
+          <p class="text-[11px] text-ink-faint text-center mt-1.5">
+            Offer a few windows — {{ dog.source.name }} picks one.
+          </p>
+        </template>
+
+        <div v-else class="p-3 rounded-xl border" :class="playDate.state === 'confirmed' ? 'border-safe/40 bg-safe-soft' : 'border-brand/30 bg-brand-soft'">
+          <p class="text-sm font-bold" :class="playDate.state === 'confirmed' ? 'text-safe' : 'text-brand'">
+            📅 {{ STATE_UI[playDate.state].label }}
+          </p>
+          <p v-if="playDate.confirmedSlot" class="text-[13px] font-semibold text-ink mt-1">
+            {{ formatSlot(playDate.confirmedSlot) }}
+          </p>
+          <ul v-else class="mt-1 space-y-0.5">
+            <li v-for="s in playDate.slots" :key="slotKey(s)" class="text-[12px] text-ink-soft">
+              {{ formatSlot(s) }}
+            </li>
+          </ul>
+        </div>
+      </div>
+
       <!-- Reach a human directly. On a countdown, waiting on a generic inbox
            is the difference between meeting this dog and not. -->
       <div
@@ -475,6 +511,7 @@ const compatTags = computed(() => {
     </p>
 
     <MessageSheet :open="messageOpen" :dog="dog" @close="messageOpen = false" />
+    <PlayDateSheet :open="playDateOpen" :dog="dog" @close="playDateOpen = false" />
     </ClientOnly>
     </div>
   </div>

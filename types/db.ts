@@ -5,6 +5,7 @@
    a schema change and a silently wrong dog card. */
 
 import type { RiskCategory, SourceType, TraitPentagon, YNS } from "~/types";
+import type { PlayDateSlot, PlayDateState } from "~/utils/playDates";
 
 export type AdoptionStatus = "available" | "pending" | "adopted" | "withdrawn";
 
@@ -66,6 +67,23 @@ export interface FastPassApplication {
   reviewed_at: string | null;
   reviewed_by: string | null;
   reviewer_note: string | null;
+}
+
+export interface PlayDateRow {
+  id: string;
+  dog_id: string;
+  adopter_id: string;
+  org_id: string;
+  state: PlayDateState;
+  proposed_slots: PlayDateSlot[];
+  confirmed_slot: PlayDateSlot | null;
+  location: string | null;
+  adopter_note: string | null;
+  org_note: string | null;
+  created_at: string;
+  /* Embedded by the queue query. */
+  dogs?: { id: string; name: string; breed: string } | null;
+  profiles?: { name: string; phone: string; email: string } | null;
 }
 
 export interface DogRow {

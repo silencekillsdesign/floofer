@@ -457,6 +457,7 @@ onMounted(() => {
         <div class="flex flex-wrap items-center justify-between gap-2 mb-3">
           <h2 class="font-display text-lg font-semibold">Pets you manage</h2>
           <div class="flex gap-2 flex-wrap">
+            <NuxtLink to="/account/play-dates" class="px-4 py-2 rounded-full border border-line bg-card text-sm font-semibold text-ink-soft hover:border-ink-faint">📅 Play dates</NuxtLink>
             <NuxtLink to="/account/fast-pass" class="px-4 py-2 rounded-full border border-line bg-card text-sm font-semibold text-ink-soft hover:border-ink-faint">⚡ Fast-Pass review</NuxtLink>
             <NuxtLink to="/account/new-pet" class="px-4 py-2 rounded-full bg-brand text-white text-sm font-semibold hover:bg-brand-deep">+ List a pet</NuxtLink>
           </div>

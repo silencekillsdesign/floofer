@@ -1,6 +1,19 @@
 import { get as idbGet, set as idbSet, del as idbDel } from "idb-keyval";
-import type { Dog, Filters, Profile, TraitPentagon } from "~/types";
+import type { Dog, Filters, HouseholdPet, Profile, TraitPentagon } from "~/types";
+import type { PlayDateSlot, PlayDateState } from "~/utils/playDates";
 import { DOGS } from "~/data/dogs";
+
+/** An adopter's own view of a play-date request. The authoritative row lives
+    in the database once connected; this keeps the flow working in demo mode
+    and gives the pet page something to render immediately. */
+export interface LocalPlayDate {
+  dogId: string;
+  slots: PlayDateSlot[];
+  note: string;
+  state: PlayDateState;
+  requestedAt: string;
+  confirmedSlot?: PlayDateSlot;
+}
 
 /* Storage is split by weight: localStorage keeps the small, hot state so the
    deck hydrates synchronously on first paint, while base64 photos (which blow
@@ -31,6 +44,7 @@ interface Persisted {
   liked: string[];
   passed: string[];
   adoptedOverrides: string[];
+  playDates: LocalPlayDate[];
   profile: Profile;
   customDogs: Dog[];
   dataSource: DataSource | "live";
@@ -150,6 +164,7 @@ export function useStore() {
   /** Which provider liveDogs was loaded from — a source switch invalidates the cache. */
   const liveLoadedFor = useState<DataSource | "">("rm-live-for", () => "");
   const hydrated = useState<boolean>("rm-hydrated", () => false);
+  const playDates = useState<LocalPlayDate[]>("rm-play-dates", () => []);
   /** Pauses the persistence watcher so a deletion can't be undone by its own
       reactive write-back. See clearMyData(). */
   const suspendPersist = useState<boolean>("rm-suspend-persist", () => false);
@@ -189,6 +204,7 @@ export function useStore() {
         liked.value = p.liked ?? [];
         passed.value = p.passed ?? [];
         adoptedOverrides.value = p.adoptedOverrides ?? [];
+        playDates.value = p.playDates ?? [];
         applied.value = p.applied ?? [];
         customDogs.value = p.customDogs ?? [];
         // migrate the old "live" value (pre-Petfinder) to its provider name
@@ -213,7 +229,7 @@ export function useStore() {
       .catch(() => {});
 
     watch(
-      [liked, passed, adoptedOverrides, applied, profile, customDogs, dataSource],
+      [liked, passed, adoptedOverrides, applied, profile, customDogs, dataSource, playDates],
       () => {
         if (suspendPersist.value) return; // mid-deletion — don't write anything back
 
@@ -225,6 +241,7 @@ export function useStore() {
               liked: liked.value,
               passed: passed.value,
               adoptedOverrides: adoptedOverrides.value,
+              playDates: playDates.value,
               applied: applied.value,
               profile: {
                 ...profile.value,
@@ -350,6 +367,27 @@ export function useStore() {
     liked.value = liked.value.filter((x) => x !== id);
     passed.value = passed.value.filter((x) => x !== id);
   };
+  /** Ask a shelter to meet a dog. Kept locally so the demo build shows the
+      whole flow; when a backend is connected the row is written too, which is
+      what lets the shelter actually see it. */
+  function requestPlayDate(dogId: string, slots: PlayDateSlot[], note: string) {
+    playDates.value = [
+      ...playDates.value.filter((p) => p.dogId !== dogId),
+      { dogId, slots, note, state: "requested", requestedAt: new Date().toISOString() },
+    ];
+    if (import.meta.client) {
+      const db = useDb();
+      if (db.configured.value) {
+        db.createPlayDate(dogId, slots, note).catch((e) =>
+          console.warn("[floofer] play date not saved to the server", e),
+        );
+      }
+    }
+    wag(2);
+  }
+
+  const playDateFor = (dogId: string) => playDates.value.find((p) => p.dogId === dogId) ?? null;
+
   const submitApplication = (id: string) => {
     if (applied.value.includes(id)) return;
     applied.value = [...applied.value, id];
@@ -366,6 +404,7 @@ export function useStore() {
   return {
     dogs, liked, passed, applied, profile, hydrated,
     matchPct, like, pass, unswipe, toggleAdopted, addDog, submitApplication, clearMyData,
+    playDates, requestPlayDate, playDateFor,
     dataSource, liveStatus, liveError, liveDogs, loadLive,
   };
 }
