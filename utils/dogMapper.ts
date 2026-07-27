@@ -1,5 +1,5 @@
 /* DB row -> the `Dog` shape every component already speaks. Keeping this the
-   single translation point means the swipe deck, map, matches list and OG
+   single translation point means the match deck, map, matches list and OG
    cards never learn that a second data source exists. */
 import type { Dog } from "~/types";
 import type { DogRow } from "~/types/db";

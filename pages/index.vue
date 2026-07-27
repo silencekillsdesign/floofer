@@ -1,7 +1,7 @@
 <script setup lang="ts">
 import type { Dog } from "~/types";
 
-const { dogs, liked, passed, matchPct, like, pass, unswipe } = useStore();
+const { dogs, liked, passed, matchPct, like, pass, undoDecision } = useStore();
 const filters = useFilters();
 const router = useRouter();
 const history = ref<string[]>([]);
@@ -19,7 +19,7 @@ const deck = computed<Dog[]>(() => {
   });
 });
 
-function onSwiped(id: string, dir: "left" | "right") {
+function onDecided(id: string, dir: "left" | "right") {
   history.value.push(id);
   if (dir === "right") {
     // it's a match — go meet them; the bio's CTA is already at "Rescue"
@@ -32,7 +32,7 @@ function onSwiped(id: string, dir: "left" | "right") {
 
 function rewind() {
   const last = history.value.pop();
-  if (last) unswipe(last);
+  if (last) undoDecision(last);
 }
 
 /* Bring every passed-on dog back into the deck (likes are untouched). */
@@ -48,7 +48,7 @@ function restorePassed() {
   <div
     class="relative w-full sm:max-w-md mx-auto p-1.5 sm:p-2 h-[calc(100dvh-3.5rem-4rem-env(safe-area-inset-bottom))] sm:h-[calc(100dvh-3.5rem-1rem)]"
   >
-    <SwipeDeck ref="deckRef" :deck="deck" :passed-count="passed.length" @swiped="onSwiped" @undo="rewind" @restore="restorePassed" />
+    <MatchDeck ref="deckRef" :deck="deck" :passed-count="passed.length" @decided="onDecided" @undo="rewind" @restore="restorePassed" />
 
     <!-- docked action bar: pass / bio / like centered, share as a right-edge utility -->
     <div v-if="deck.length" class="absolute inset-x-2 bottom-4 z-20 flex items-center justify-center gap-3">

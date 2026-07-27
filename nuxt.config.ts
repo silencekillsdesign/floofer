@@ -64,10 +64,10 @@ export default defineNuxtConfig({
   pwa: {
     registerType: "autoUpdate",
     manifest: {
-      name: "Floofer — Swipe. Match. Save a life.",
+      name: "Floofer — Match. Meet. Save a life.",
       short_name: "Floofer",
       description:
-        "Swipe to adopt. Floofer surfaces dogs at the highest risk of euthanization first.",
+        "Match with the dogs closest to running out of time. Floofer surfaces the highest-risk animals first.",
       lang: "en",
       theme_color: "#000000",
       background_color: "#000000",
@@ -130,7 +130,7 @@ export default defineNuxtConfig({
   css: ["leaflet/dist/leaflet.css", "~/assets/css/main.css"],
   app: {
     head: {
-      title: "floofer — Swipe. Match. Save a life.",
+      title: "floofer — Match. Meet. Save a life.",
       meta: [
         { name: "viewport", content: "width=device-width, initial-scale=1, viewport-fit=cover" },
         {

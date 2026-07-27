@@ -65,14 +65,14 @@ watchEffect(() => {
   });
 });
 
-/* Photo gallery gestures: horizontal swipe or tap-zones (left 40% back,
+/* Photo gallery gestures: horizontal drag or tap-zones (left 40% back,
    right 60% forward). Vertical drags fall through to page scroll. */
 const photoCount = computed(() => dog.value?.photos.length ?? 0);
 const nextPhoto = () => (photoIdx.value = (photoIdx.value + 1) % photoCount.value);
 const prevPhoto = () =>
   (photoIdx.value = (photoIdx.value - 1 + photoCount.value) % photoCount.value);
 
-const SWIPE_MIN = 40;
+const DRAG_MIN = 40;
 const TAP_SLOP = 8;
 const gStartX = ref(0);
 const gStartY = ref(0);
@@ -90,7 +90,7 @@ function heroUp(e: PointerEvent) {
   if (photoCount.value < 2) return;
   const dx = e.clientX - gStartX.value;
   const dy = e.clientY - gStartY.value;
-  if (Math.abs(dx) > SWIPE_MIN && Math.abs(dx) > Math.abs(dy)) {
+  if (Math.abs(dx) > DRAG_MIN && Math.abs(dx) > Math.abs(dy)) {
     dx < 0 ? nextPhoto() : prevPhoto();
   } else if (Math.abs(dx) < TAP_SLOP && Math.abs(dy) < TAP_SLOP) {
     const rect = (e.currentTarget as HTMLElement).getBoundingClientRect();

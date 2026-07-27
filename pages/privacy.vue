@@ -36,7 +36,7 @@ useSeoMeta({
             <li>Your adoption profile: household make-up (including children's ages if you enter them),
               housing and landlord details, work, and pet/vet history.</li>
             <li>Photos you add — of your home, your current pets, or (for shelters) the animals you list.</li>
-            <li>Which dogs you swipe on, so your deck and matches make sense.</li>
+            <li>Which dogs you match with or pass on, so your deck and matches make sense.</li>
           </ul>
           <p class="text-ink-soft mt-2">
             We do <strong class="text-ink">not</strong> use tracking cookies, advertising, or third-party analytics
@@ -47,7 +47,7 @@ useSeoMeta({
         <div>
           <h2 class="font-display text-lg font-bold mb-1.5">Where it's stored</h2>
           <ul class="list-disc pl-5 space-y-1 text-ink-soft">
-            <li><strong class="text-ink">On your device.</strong> Your profile, photos, and swipe history live in
+            <li><strong class="text-ink">On your device.</strong> Your profile, photos, and match history live in
               your own browser. If you never sign in, they never leave it.</li>
             <li><strong class="text-ink">In our database</strong> (Supabase), only if you sign in. Your account row
               is protected so that <strong class="text-ink">only you can read it</strong> — other users, including
@@ -70,7 +70,7 @@ useSeoMeta({
           <h2 class="font-display text-lg font-bold mb-1.5">Deleting your data</h2>
           <p class="text-ink-soft">
             Go to <NuxtLink to="/account" class="text-brand font-semibold underline">Account</NuxtLink> and use
-            <em>Delete my data</em>. It erases your profile, photos, documents, and swipe history from this device and
+            <em>Delete my data</em>. It erases your profile, photos, documents, and match history from this device and
             from our database. To remove your sign-in account entirely, email us and we'll delete it.
           </p>
         </div>

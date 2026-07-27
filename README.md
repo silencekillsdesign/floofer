@@ -1,6 +1,6 @@
 # floofer 🐾
 
-**Swipe. Match. Save a life.**
+**Match. Meet. Save a life.**
 
 Tinder-style pet adoption app focused on re-homing dogs at the highest risk of
 euthanization — surfacing at-risk animals first from non-kill shelters, fosters,
@@ -8,8 +8,8 @@ individual homes, and pet retirement communities.
 
 ## Features
 
-- **Swipe deck** — drag/arrow-key swiping; at-risk dogs always surface first,
-  sorted by days remaining. Swipe up on the photo to cycle the gallery.
+- **Match deck** — drag/arrow-key decisions; at-risk dogs always surface first,
+  sorted by days remaining. Flick up on the photo to cycle the gallery.
 - **Pentagon matching** — 5-axis compatibility (energy, space, social, solo
   time, training) between each dog's needs and your living conditions; live
   match % everywhere.

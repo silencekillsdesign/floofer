@@ -605,7 +605,7 @@ onMounted(() => {
         <div v-else class="p-4 rounded-2xl bg-risk-soft border border-risk/30">
           <p class="text-sm font-bold text-risk mb-1">Delete everything?</p>
           <p class="text-xs text-ink-soft mb-3">
-            This erases your profile, photos, documents, and swipe history from this device and from our database.
+            This erases your profile, photos, documents, and match history from this device and from our database.
             It can't be undone.
           </p>
           <p v-if="deleteError" class="text-xs text-risk font-semibold mb-2" role="alert">{{ deleteError }}</p>

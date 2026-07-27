@@ -233,7 +233,7 @@ export function useStore() {
     } catch {}
 
     /* Photos land a tick after first paint — images load async anyway, so the
-       swipe deck never waits on them. */
+       match deck never waits on them. */
     idbGet<PhotoStore>(IDB_PHOTOS_KEY)
       .then((ph) => {
         if (!ph) return;
@@ -316,7 +316,7 @@ export function useStore() {
 
   /** Erase the user's personal data: everything on this device (localStorage +
       the IndexedDB photo store) and, when signed in, the PII in their server
-      profile row. Swipe history and listings they created locally go too.
+      profile row. Match history and listings they created locally go too.
       Leaves an empty adopter profile so the app still runs. */
   async function clearMyData(): Promise<void> {
     // Server first — if it fails we surface the error rather than pretending
@@ -382,7 +382,7 @@ export function useStore() {
     liked.value = liked.value.filter((x) => x !== id);
     if (!passed.value.includes(id)) passed.value = [...passed.value, id];
   };
-  const unswipe = (id: string) => {
+  const undoDecision = (id: string) => {
     liked.value = liked.value.filter((x) => x !== id);
     passed.value = passed.value.filter((x) => x !== id);
   };
@@ -422,7 +422,7 @@ export function useStore() {
 
   return {
     dogs, liked, passed, applied, profile, hydrated,
-    matchPct, like, pass, unswipe, toggleAdopted, addDog, submitApplication, clearMyData,
+    matchPct, like, pass, undoDecision, toggleAdopted, addDog, submitApplication, clearMyData,
     playDates, requestPlayDate, playDateFor,
     dataSource, liveStatus, liveError, liveDogs, loadLive,
   };

@@ -2,7 +2,7 @@
 import type { Dog } from "~/types";
 
 const props = defineProps<{ deck: Dog[]; passedCount?: number }>();
-const emit = defineEmits<{ swiped: [id: string, dir: "left" | "right"]; undo: []; restore: [] }>();
+const emit = defineEmits<{ decided: [id: string, dir: "left" | "right"]; undo: []; restore: [] }>();
 
 /* --- drag state for the top card --- */
 const dx = ref(0);
@@ -86,7 +86,7 @@ function fling(dir: "left" | "right") {
   const id = top.value.id;
   leaving.value = dir;
   setTimeout(() => {
-    emit("swiped", id, dir);
+    emit("decided", id, dir);
     leaving.value = null;
     dx.value = 0;
     dy.value = 0;
@@ -190,7 +190,7 @@ useEventListener(window, "keydown", onKey);
         <h3 class="font-display text-xl font-semibold mb-1">That's everyone nearby</h3>
         <p class="text-sm text-ink-soft mb-4">Widen your filters, or revisit the ones you passed on — hearts change.</p>
         <div class="flex flex-col items-center gap-2">
-          <button class="px-5 py-2.5 rounded-full bg-brand text-white text-sm font-bold shadow-glow hover:bg-brand-deep" @click="emit('undo')">Rewind last swipe</button>
+          <button class="px-5 py-2.5 rounded-full bg-brand text-white text-sm font-bold shadow-glow hover:bg-brand-deep" @click="emit('undo')">Rewind last card</button>
           <button
             v-if="passedCount"
             class="px-5 py-2.5 rounded-full border border-line bg-card text-sm font-semibold text-ink-soft hover:border-ink-faint"
