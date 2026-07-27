@@ -175,6 +175,28 @@ export function useDb() {
     return position;
   }
 
+  /** Push the local profile to the server. Until this existed the adoption
+      profile never left the browser — which meant a shelter had nothing to
+      verify and a new phone started from scratch. */
+  async function saveMyProfile(p: Profile): Promise<{ saved: boolean; reason?: string }> {
+    if (!configured.value) return { saved: false, reason: "no-backend" };
+    if (!userId.value) return { saved: false, reason: "signed-out" };
+    const { error } = await client
+      .from("profiles")
+      .update({
+        name: p.name,
+        phone: p.phone,
+        city: cityLine(p.address),
+        address: p.address,
+        org: p.org,
+        traits: p.traits,
+        adoption: p.adoption,
+      })
+      .eq("id", userId.value);
+    if (error) return { saved: false, reason: error.message };
+    return { saved: true };
+  }
+
   /** Erase the personal data held in the signed-in user's profile row,
       leaving an empty shell (the email stays — it's the login identity).
       Backs the adopter-facing "delete my data" control. */
@@ -354,7 +376,7 @@ export function useDb() {
     configured, client, user, userId, toDog,
     createPlayDate, fetchPlayDates, answerPlayDate,
     fetchDogs, fetchMyOrgDogs, fetchMyProfile,
-    createDog, updateDogState, uploadDogPhotos, eraseMyProfile,
+    createDog, updateDogState, uploadDogPhotos, eraseMyProfile, saveMyProfile,
     submitFastPass, fetchFastPassQueue, reviewFastPass, fetchMyFastPass,
   };
 }

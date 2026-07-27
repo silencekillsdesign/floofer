@@ -4,7 +4,36 @@
    auto-persists; sections are native <details> for accessibility. */
 
 const { profile } = useStore();
+const db = useDb();
 const a = computed(() => profile.value.adoption);
+
+/* Edits persist locally as you type so nothing is ever lost mid-form, but
+   until now they never left the browser — a shelter had nothing to verify and
+   a new phone started blank. Save pushes to the server, which is real work
+   rather than a button that only reassures. */
+const saving = ref(false);
+const saveState = ref<"idle" | "saved" | "local" | "error">("idle");
+const saveNote = ref("");
+
+async function save() {
+  saving.value = true;
+  const res = await db.saveMyProfile(profile.value);
+  saving.value = false;
+  if (res.saved) {
+    saveState.value = "saved";
+    saveNote.value = "";
+  } else if (res.reason === "no-backend" || res.reason === "signed-out") {
+    saveState.value = "local";
+    saveNote.value =
+      res.reason === "signed-out"
+        ? "Saved on this device. Sign in and save again to keep it across devices."
+        : "Saved on this device.";
+  } else {
+    saveState.value = "error";
+    saveNote.value = res.reason ?? "Could not save.";
+  }
+  if (saveState.value !== "error") setTimeout(() => (saveState.value = "idle"), 2600);
+}
 
 /* ---------- completeness (shared with the message sheet) ---------- */
 const completeness = computed(() => adoptionCompleteness(profile.value));
@@ -43,7 +72,7 @@ const DWELLINGS = [
       <span class="text-sm font-bold" :class="pct === 100 ? 'text-safe' : 'text-brand'">{{ pct }}% complete</span>
     </div>
     <p class="text-xs text-ink-soft mb-3">
-      Rescues review this before approving a meet — complete profiles typically get approved days faster. Changes save automatically.
+      Rescues review this before approving a meet — complete profiles typically get approved days faster.
     </p>
 
     <!-- completeness bar -->
@@ -247,6 +276,21 @@ const DWELLINGS = [
           </div>
         </div>
       </details>
+    </div>
+
+    <div class="flex flex-wrap items-center gap-3 mt-4 pt-4 border-t border-line/60">
+      <button
+        :disabled="saving"
+        class="px-5 py-2.5 rounded-full text-sm font-bold transition-colors disabled:opacity-50"
+        :class="saveState === 'saved' ? 'bg-safe-soft text-safe border border-safe/30' : 'bg-brand text-white hover:bg-brand-deep shadow-glow'"
+        @click="save"
+      >
+        {{ saving ? "Saving…" : saveState === "saved" ? "Saved ✓" : "Save profile" }}
+      </button>
+      <p v-if="saveNote" class="text-xs leading-relaxed" :class="saveState === 'error' ? 'text-risk font-semibold' : 'text-ink-soft'">
+        {{ saveNote }}
+      </p>
+      <p v-else class="text-xs text-ink-faint">Your answers are kept as you type — this also syncs them to your account.</p>
     </div>
   </section>
 </template>

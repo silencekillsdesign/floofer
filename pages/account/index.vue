@@ -125,6 +125,7 @@ function saveEdit() {
   profile.value.phone = draft.phone.trim();
   profile.value.address = {
     street: draft.address.street.trim(),
+
     street2: draft.address.street2.trim(),
     city: draft.address.city.trim(),
     state: draft.address.state.trim().toUpperCase(),
@@ -143,6 +144,9 @@ function saveEdit() {
   }
   editing.value = false;
   saved.value = true;
+  /* Personal info and org contact belong on the account too, not just this
+     browser — a shelter's phone number is useless if it never syncs. */
+  db.saveMyProfile(profile.value);
   setTimeout(() => (saved.value = false), 1800);
 }
 function cancelEdit() {
@@ -154,9 +158,15 @@ const route = useRoute();
 const bioSaved = ref(false);
 const highlightBio = ref(false);
 
-function saveBio() {
+/* Sliders bind straight to the profile, so the values are already applied —
+   this syncs them to the account so a shelter and a second device see the
+   same thing. Failure is silent on purpose: the local save already happened,
+   and an error toast here would suggest the edit was lost when it wasn't. */
+async function saveBio() {
   bioSaved.value = true;
   highlightBio.value = false;
+  await db.saveMyProfile(profile.value);
+  setTimeout(() => (bioSaved.value = false), 2600);
 }
 
 onMounted(() => {
