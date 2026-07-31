@@ -162,6 +162,9 @@ export const DOGS: Dog[] = [
     goodWithCats: "selective", goodWithKids: "older",
     traits: { energy: 3, space: 4, social: 4, independence: 7, training: 4 },
     risk: "high", riskReason: "Track retirement transport deadline", riskCategory: "transport", daysLeft: 12,
+    /* The placement exists — a foster is confirmed. The only missing piece is
+       a car, which is the cheapest save in this entire dataset. */
+    transport: { to: "Springfield, IL — foster confirmed", when: "any weekend day" },
     source: { type: "retirement", name: "Fast Friends Greyhound Retirement" },
     location: { lat: 41.885, lng: -87.7845, city: "Oak Park" },
     adoptionFee: 300,

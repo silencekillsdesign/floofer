@@ -58,6 +58,27 @@ const isInstitution = computed(() =>
   ["shelter", "municipal", "retirement"].includes(profile.value.userType),
 );
 
+/* Places an animal gets collected FROM. Fast-Pass promises a two-hour
+   response, which is a promise about a car arriving somewhere — so these two
+   need to know when their door is open and who picks up when it isn't. */
+const isPickupSite = computed(() =>
+  ["shelter", "municipal"].includes(profile.value.userType),
+);
+
+/* Long-term care. Whether there's a free run, and whether they'll take an
+   animal that isn't going to get better, are the only two questions worth
+   asking a sanctuary — and both change the answer to "is there anywhere left
+   to call". */
+const isSanctuary = computed(() => profile.value.userType === "retirement");
+
+const OPENINGS: { v: OrgDetails["openings"]; label: string }[] = [
+  { v: "", label: "Not stated" },
+  { v: "none", label: "Full — no room right now" },
+  { v: "1-2", label: "1–2 spaces" },
+  { v: "3-5", label: "3–5 spaces" },
+  { v: "6+", label: "6 or more" },
+];
+
 /* Dogs "managed" by the current org type (demo: match on source.type). */
 const managedDogs = computed(() =>
   profile.value.userType === "adopter"
@@ -107,7 +128,10 @@ const saved = ref(false);
 const draft = reactive({
   name: "", email: "", phone: "",
   address: { street: "", street2: "", city: "", state: "", postalCode: "" } as Address,
-  org: { orgName: "", website: "", contactName: "", contactRole: "", contactPhone: "", contactEmail: "" } as OrgDetails,
+  org: {
+    orgName: "", website: "", contactName: "", contactRole: "", contactPhone: "", contactEmail: "",
+    collectionHours: "", emergencyPhone: "", openings: "", hospice: false,
+  } as OrgDetails,
 });
 
 function startEdit() {
@@ -125,7 +149,6 @@ function saveEdit() {
   profile.value.phone = draft.phone.trim();
   profile.value.address = {
     street: draft.address.street.trim(),
-
     street2: draft.address.street2.trim(),
     city: draft.address.city.trim(),
     state: draft.address.state.trim().toUpperCase(),
@@ -140,6 +163,10 @@ function saveEdit() {
       contactRole: draft.org.contactRole.trim(),
       contactPhone: draft.org.contactPhone.trim(),
       contactEmail: draft.org.contactEmail.trim(),
+      collectionHours: draft.org.collectionHours.trim(),
+      emergencyPhone: draft.org.emergencyPhone.trim(),
+      openings: draft.org.openings,
+      hospice: draft.org.hospice,
     };
   }
   editing.value = false;
@@ -256,6 +283,33 @@ onMounted(() => {
                   <span v-else class="text-ink-faint font-medium">Add in Edit bio</span>
                 </dd>
               </div>
+
+              <template v-if="isPickupSite">
+                <div class="flex items-center justify-between gap-4 py-2.5">
+                  <dt class="text-xs font-semibold uppercase tracking-wide text-ink-soft">Collection hours</dt>
+                  <dd class="text-sm font-semibold text-right" :class="!profile.org.collectionHours && 'text-ink-faint font-medium'">{{ profile.org.collectionHours || "Add in Edit bio" }}</dd>
+                </div>
+                <div class="flex items-center justify-between gap-4 py-2.5">
+                  <dt class="text-xs font-semibold uppercase tracking-wide text-ink-soft">After-hours line</dt>
+                  <dd class="text-sm font-semibold text-right">
+                    <a v-if="profile.org.emergencyPhone" :href="`tel:${profile.org.emergencyPhone}`" class="text-brand">{{ profile.org.emergencyPhone }}</a>
+                    <span v-else class="text-ink-faint font-medium">Add in Edit bio</span>
+                  </dd>
+                </div>
+              </template>
+
+              <template v-if="isSanctuary">
+                <div class="flex items-center justify-between gap-4 py-2.5">
+                  <dt class="text-xs font-semibold uppercase tracking-wide text-ink-soft">Space available</dt>
+                  <dd class="text-sm font-semibold text-right" :class="!profile.org.openings && 'text-ink-faint font-medium'">
+                    {{ OPENINGS.find((o) => o.v === profile.org.openings)?.label ?? "Add in Edit bio" }}
+                  </dd>
+                </div>
+                <div class="flex items-center justify-between gap-4 py-2.5">
+                  <dt class="text-xs font-semibold uppercase tracking-wide text-ink-soft">Hospice cases</dt>
+                  <dd class="text-sm font-semibold text-right">{{ profile.org.hospice ? "Yes" : "No" }}</dd>
+                </div>
+              </template>
             </template>
           </dl>
           <button
@@ -345,6 +399,44 @@ onMounted(() => {
                   <input id="p-cemail" v-model="draft.org.contactEmail" type="email" class="w-full rounded-xl border border-line bg-paper px-3 py-2.5 text-sm font-medium" placeholder="intake@shelter.org" />
                 </div>
               </div>
+
+              <!-- The two facts an emergency pull actually turns on: when the
+                   door is open, and who answers when it isn't. -->
+              <template v-if="isPickupSite">
+                <div class="grid grid-cols-1 sm:grid-cols-2 gap-3 pt-1">
+                  <div>
+                    <label class="block text-xs font-semibold uppercase tracking-wide text-ink-soft mb-1" for="p-hours">Collection hours</label>
+                    <input id="p-hours" v-model="draft.org.collectionHours" class="w-full rounded-xl border border-line bg-paper px-3 py-2.5 text-sm font-medium" placeholder="Mon–Sat 11am–6pm" />
+                  </div>
+                  <div>
+                    <label class="block text-xs font-semibold uppercase tracking-wide text-ink-soft mb-1" for="p-ephone">After-hours line</label>
+                    <input id="p-ephone" v-model="draft.org.emergencyPhone" type="tel" class="w-full rounded-xl border border-line bg-paper px-3 py-2.5 text-sm font-medium" placeholder="(312) 555-0199" />
+                  </div>
+                </div>
+                <p class="text-[11px] text-ink-faint -mt-1">
+                  A Fast-Pass home can be at your door in two hours. Both of these decide whether that's worth anything.
+                </p>
+              </template>
+
+              <!-- Sanctuary: room, and whether they take the ones nobody else will. -->
+              <template v-if="isSanctuary">
+                <div class="pt-1">
+                  <label class="block text-xs font-semibold uppercase tracking-wide text-ink-soft mb-1" for="p-openings">Space available</label>
+                  <AppSelect
+                    id="p-openings"
+                    v-model="draft.org.openings"
+                    :options="OPENINGS.map((o) => ({ value: o.v, label: o.label }))"
+                    aria-label="Space available"
+                  />
+                </div>
+                <label class="flex items-start gap-2.5 cursor-pointer">
+                  <input v-model="draft.org.hospice" type="checkbox" class="mt-0.5 w-4 h-4 accent-brand shrink-0" />
+                  <span class="text-sm font-medium leading-snug">
+                    We take hospice cases
+                    <span class="block text-[11px] text-ink-faint font-normal">Comfort care for an animal in its last months.</span>
+                  </span>
+                </label>
+              </template>
             </div>
           </div>
 

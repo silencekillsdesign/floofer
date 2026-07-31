@@ -294,6 +294,18 @@ const compatTags = computed(() => {
         </p>
       </div>
 
+      <!-- Transport ask: the placement exists, only the drive is missing.
+           Deliberately framed as the smallest possible yes — someone who
+           can't take an animal home can still be the reason it gets there. -->
+      <div v-if="dog.transport" class="mt-3 p-3 rounded-xl border border-line bg-card">
+        <p class="text-sm font-bold text-ink">🚐 {{ dog.name }} just needs a ride</p>
+        <p class="text-[13px] text-ink-soft leading-relaxed mt-1">
+          Destination: <strong class="text-ink">{{ dog.transport.to }}</strong> · {{ dog.transport.when }}.
+          No home check, no commitment — a car and a few hours saves this dog.
+          Message {{ dog.source.name }} below to volunteer for the drive.
+        </p>
+      </div>
+
       <!-- The reframe. An adopter reads "pit bull, 200+ days" as a warning
            about the dog; it almost never is. Naming the mechanism is the
            difference between passing on Pearl and meeting her. -->

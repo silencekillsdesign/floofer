@@ -58,12 +58,18 @@ const defaultProfile = (): Profile => ({
   phone: "",
   /* City matches a CITY_OPTIONS value so the onboarding picker resolves it. */
   address: { street: "", street2: "", city: "Chicago (Loop)", state: "IL", postalCode: "" },
-  org: { orgName: "", website: "", contactName: "", contactRole: "", contactPhone: "", contactEmail: "" },
+  org: {
+    orgName: "", website: "", contactName: "", contactRole: "", contactPhone: "", contactEmail: "",
+    collectionHours: "", emergencyPhone: "", openings: "", hospice: false,
+  },
   traits: { energy: 6, space: 4, social: 7, independence: 6, training: 5 },
   payment: { brand: "Visa", last4: "4242", exp: "08/28" },
   homePhotos: [],
   petPhotos: [],
   adoption: {
+    /* Adopting is on by default because that's what people arrive for.
+       Fostering is opt-in — nobody should discover they volunteered. */
+    openTo: { adopt: true, foster: false, capacity: 1, duration: "", medical: "", separateSpace: false },
     employment: { employer: "", occupation: "", years: "" },
     isStudent: false,
     isMilitary: false,
@@ -103,6 +109,15 @@ const uid = () => Math.random().toString(36).slice(2, 10);
     note rather than dropping what someone typed. Runs once — after the first
     save the arrays are the only source. */
 export function migrateProfile(p: Profile): Profile {
+  /* Profiles merge with the defaults one level deep, so a save made before a
+     nested field existed arrives without it — and a template reading
+     `org.hospice` on it would throw. Backfill the nested shapes rather than
+     null-guarding every read site. */
+  const d = defaultProfile();
+  p.org = { ...d.org, ...p.org };
+  p.adoption = { ...d.adoption, ...p.adoption };
+  p.adoption.openTo = { ...d.adoption.openTo, ...p.adoption.openTo };
+
   /* city was a single string ("Chicago, IL") before addresses were structured.
      Keyed on the old field being present, not on address being blank — the
      profile is merged with defaults before this runs, so address always
@@ -337,17 +352,18 @@ export function useStore() {
     adoptedOverrides.value = [];
     applied.value = [];
     customDogs.value = [];
+    /* Built from the defaults and then blanked, rather than written out by
+       hand — a literal here goes stale the moment a field is added, and the
+       last one had drifted far enough to leave `org` and `address` missing
+       entirely, which the account page reads without guarding. */
     profile.value = {
-      userType: "adopter",
+      ...defaultProfile(),
       name: "",
       email: profile.value.email, // keep the login identity if signed in
       phone: "",
-      city: "",
+      address: { street: "", street2: "", city: "", state: "", postalCode: "" },
       traits: { energy: 5, space: 5, social: 5, independence: 5, training: 5 },
       payment: null,
-      homePhotos: [],
-      petPhotos: [],
-      adoption: defaultProfile().adoption,
       documents: [],
     };
 

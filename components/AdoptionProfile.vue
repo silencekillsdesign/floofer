@@ -3,6 +3,8 @@
    adoption application. Everything binds straight to the profile and
    auto-persists; sections are native <details> for accessibility. */
 
+import type { FosterDuration, FosterMedical } from "~/types";
+
 const { profile } = useStore();
 const db = useDb();
 const a = computed(() => profile.value.adoption);
@@ -56,6 +58,32 @@ const seg = (active: boolean) =>
     active ? "bg-brand text-white border-brand" : "bg-card border-line text-ink-soft hover:border-ink-faint"
   }`;
 
+/* ---------- what this household is open to ---------- */
+const openTo = computed(() => a.value.openTo);
+
+/* Literal types rather than an annotation — these are the FosterDuration and
+   FosterMedical unions, and inferring them keeps the two in step without a
+   type-only import. */
+const DURATIONS = [
+  { v: "days", label: "A few days" },
+  { v: "2-4-weeks", label: "2–4 weeks" },
+  { v: "2-months", label: "A couple of months" },
+  { v: "open", label: "As long as it takes" },
+] as const;
+
+const MEDICAL = [
+  { v: "none", label: "No meds", hint: "A healthy animal only." },
+  { v: "oral", label: "Oral meds", hint: "Pills and liquids — covers most treatable illness." },
+  { v: "injections", label: "Injections", hint: "Insulin, fluids, sub-Q. Rare, and badly needed." },
+] as const;
+
+/* Rescues won't place into a home whose own animals aren't covered — an
+   unvaccinated resident pet is a risk to the foster animal and vice versa.
+   Read from the vet section rather than asked again here. */
+const vaccinationBlocks = computed(
+  () => a.value.vet.pets.some((p) => p.stillWithMe) && a.value.vet.petsVaccinated !== "yes",
+);
+
 const DWELLINGS = [
   { value: "house", label: "House", icon: "🏠" },
   { value: "apartment", label: "Apartment", icon: "🏢" },
@@ -83,6 +111,86 @@ const DWELLINGS = [
       Still needed: {{ missing.slice(0, 3).join(" · ") }}<template v-if="missing.length > 3"> · +{{ missing.length - 3 }} more</template>
     </p>
     <p v-else class="text-[11px] text-safe font-semibold mb-4">✓ Ready to apply — rescues can verify everything they need.</p>
+
+    <!-- ===== What you're open to =====
+         Above the fold and never collapsed, because it changes what the rest
+         of the form is for. Rescues are not short of adopters; they're short
+         of somewhere to put an animal this week. A home that can hold a dog
+         for a fortnight is the difference between pulling one off a list and
+         leaving it there — so every adopter gets asked, rather than the ask
+         being buried behind a "Foster" account type nobody picks. -->
+    <div class="mb-4 p-4 rounded-2xl bg-paper-warm border border-line/70">
+      <span class="block text-xs font-semibold uppercase tracking-wide text-ink-soft mb-2.5">I'm open to</span>
+      <div class="space-y-2.5">
+        <label class="flex items-start gap-2.5 cursor-pointer">
+          <input v-model="openTo.adopt" type="checkbox" class="mt-0.5 w-4 h-4 accent-brand shrink-0" />
+          <span class="text-sm font-semibold leading-snug">
+            Adopting permanently
+            <span class="block text-[11px] text-ink-faint font-normal">A forever home.</span>
+          </span>
+        </label>
+        <label class="flex items-start gap-2.5 cursor-pointer">
+          <input v-model="openTo.foster" type="checkbox" class="mt-0.5 w-4 h-4 accent-brand shrink-0" />
+          <span class="text-sm font-semibold leading-snug">
+            Fostering temporarily
+            <span class="block text-[11px] text-ink-faint font-normal">Holding an animal safe until a permanent home is found.</span>
+          </span>
+        </label>
+      </div>
+
+      <div v-if="openTo.foster" class="mt-4 pt-4 border-t border-line/60 space-y-3.5">
+        <div>
+          <label class="flex justify-between text-xs font-semibold uppercase tracking-wide text-ink-soft mb-1" for="ap-fcap">
+            <span>How many at once</span>
+            <span class="text-brand normal-case">{{ openTo.capacity }}{{ openTo.capacity >= 6 ? "+" : "" }}</span>
+          </label>
+          <input id="ap-fcap" v-model.number="openTo.capacity" type="range" min="1" max="6" step="1" />
+          <p class="text-[11px] text-ink-faint mt-1">Littermates usually have to stay together — two or more opens up whole litters.</p>
+        </div>
+
+        <div>
+          <span :class="labelCls">Longest you could commit</span>
+          <div class="grid grid-cols-2 gap-2">
+            <button
+              v-for="d in DURATIONS"
+              :key="d.v"
+              :class="seg(openTo.duration === d.v)"
+              :aria-pressed="openTo.duration === d.v"
+              @click="openTo.duration = d.v"
+            >{{ d.label }}</button>
+          </div>
+          <p class="text-[11px] text-ink-faint mt-1">A few days is genuinely useful — a weekend covers the gap to a transport run.</p>
+        </div>
+
+        <div>
+          <span :class="labelCls">Medication you're willing to give</span>
+          <div class="flex flex-wrap gap-2">
+            <button
+              v-for="m in MEDICAL"
+              :key="m.v"
+              :class="chip(openTo.medical === m.v)"
+              :aria-pressed="openTo.medical === m.v"
+              @click="openTo.medical = m.v"
+            >{{ m.label }}</button>
+          </div>
+          <p v-if="openTo.medical" class="text-[11px] text-ink-faint mt-1.5">
+            {{ MEDICAL.find((m) => m.v === openTo.medical)?.hint }}
+          </p>
+        </div>
+
+        <button :class="chip(openTo.separateSpace)" :aria-pressed="openTo.separateSpace" @click="openTo.separateSpace = !openTo.separateSpace">
+          🚪 I have a room that closes
+        </button>
+        <p class="text-[11px] text-ink-faint">
+          Needed for a contagious-but-treatable animal, and for any dog that can't meet your pets on day one.
+        </p>
+
+        <p v-if="vaccinationBlocks" class="text-xs text-risk font-medium">
+          Rescues won't place a foster animal alongside unvaccinated pets. Confirm your own pets' vaccinations under
+          <span class="font-semibold">Pet history &amp; vet reference</span> below.
+        </p>
+      </div>
+    </div>
 
     <div class="divide-y divide-line/60">
       <!-- ===== Household ===== -->

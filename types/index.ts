@@ -88,6 +88,13 @@ export interface Dog {
   criticalUntil?: string;
   daysLeft?: number;
   adopted?: boolean;
+
+  /** Set when the placement exists and the only missing piece is a driver.
+      A dog with a foster 40 miles away and nobody to make the drive is still
+      on the list — this is the cheapest save in rescue and the easiest way in
+      for someone who can't take an animal home. Origin is the listing's own
+      city, so only the far end is stored. */
+  transport?: { to: string; when: string };
 }
 
 /** A postal address. Shelters need a real one to run a home check or verify a
@@ -111,6 +118,20 @@ export interface OrgDetails {
   contactRole: string;
   contactPhone: string;
   contactEmail: string;
+  /** When an animal can physically be collected. Fast-Pass promises a
+      two-hour response; that promise is decorative if nobody knows whether
+      the door is open. */
+  collectionHours: string;
+  /** Answered outside those hours. An animal's window doesn't keep office
+      hours, and neither does a transport leg that falls through at 9pm. */
+  emergencyPhone: string;
+  /** Long-term care only: how much room is actually free. A range, not a
+      count — an exact number is stale the day after it's typed, and
+      "about two" is the honest answer anyway. */
+  openings: "" | "none" | "1-2" | "3-5" | "6+";
+  /** Takes end-of-life cases. Rare, and the reason a sanctuary is often the
+      only call left to make. */
+  hospice: boolean;
 }
 
 /** "Chicago, IL" — the at-a-glance line used on cards and headers. */
@@ -144,10 +165,39 @@ export interface HouseholdPet {
   note: string;
 }
 
+/** How long a home can hold an animal. Anything under a week is still worth
+    having — a weekend covers the gap between a euthanasia list and a
+    transport run. */
+export type FosterDuration = "" | "days" | "2-4-weeks" | "2-months" | "open";
+
+/** Medication a foster is willing to give. The line between "oral" and
+    "injections" decides whether a treatable animal is placeable at all. */
+export type FosterMedical = "" | "none" | "oral" | "injections";
+
+/** What a household is open to. Adoption is the happy ending; fostering is
+    what buys the time to reach it. Foster capacity — not adopter demand — is
+    what caps how many animals a rescue can pull off a list, so this has to be
+    askable of every adopter, not hidden behind a separate account type. */
+export interface PlacementOffer {
+  adopt: boolean;
+  foster: boolean;
+  /** Animals at once. */
+  capacity: number;
+  duration: FosterDuration;
+  medical: FosterMedical;
+  /** A room that closes — the prerequisite for a contagious-but-treatable
+      animal, and for a dog that can't meet resident pets yet. */
+  separateSpace: boolean;
+}
+
 /* Adoption-application details, modeled on a standard humane-society dog
    adoption form. Only pre-adoption facts live here — per-dog questions
    (why this dog, signatures) belong to the application moment. */
 export interface AdoptionDetails {
+  /** Adopt, foster, or both. Lives here because a rescue reads the same
+      household facts either way — vaccinations, landlord, hours alone — and
+      making people fill them in twice is how you lose a foster. */
+  openTo: PlacementOffer;
   employment: { employer: string; occupation: string; years: string };
   isStudent: boolean;
   isMilitary: boolean;
