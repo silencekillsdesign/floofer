@@ -187,15 +187,26 @@ py 10, `radius/xl`, card bg, line border, chevron-down brand.
 
 Props: `Value` (TEXT), `Icon emoji` (TEXT, optional leading emoji).
 
-## 6. Backlog (documented, not built in v1)
+## 6. Built in v1.1 (was backlog)
 
-- `RiskBadge` (`pet/RiskBadge.vue`) — risk-red countdown pill on photos
-- `MatchRing` (`match/MatchRing.vue`) — percentage arc; needs vector arc work
-- Dog card (gallery), list row, deck card — organisms; compose from the above
-- `MatchEmptyState`, toast, bottom nav — after the organisms
+- **`RiskBadge`** — Status: `Adopted` / `At risk` / `Safe`. Labels are intrinsic
+  per status (no shared TEXT prop — a shared default steamrolls them; instances
+  override text directly). At-risk dot pulses in product (`animate-ping`).
+- **`MatchRing`** — Tier exemplars `High` 86% (safe) / `Mid` 72% (brand) /
+  `Low` 45% (ink-faint) at 52px; arc is a generated SVG path from 12 o'clock.
+  Product renders any pct; tier thresholds: ≥80 safe, ≥60 brand.
+- **`Cards` page organisms** — `GalleryCard` (240×356, 4:5 photo, gradient
+  identity block, badge + 36px ring overlays, SM decide pair) and `ListRow`
+  (760w: photo 144, info column with source/transport/tagline, 44px ring +
+  decide pair). Photos are placeholder frames — product loads real images.
+
+## 7. Backlog
+
+- Deck card (swipe surface) — the last organism
+- `MatchEmptyState`, match toast, bottom nav
 - Light-mode shadow variants if Figma adds mode-aware effect styles
 
-## 7. Rebuild procedure (for a fresh file or future sync)
+## 8. Rebuild procedure (for a fresh file or future sync)
 
 1. Load the Figma MCP skills `figma-use` + `figma-generate-library`.
 2. Phase 1: create `Color` (Dark/Light) and `Layout` collections from §1–2 —
