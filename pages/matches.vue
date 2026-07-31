@@ -65,7 +65,7 @@ const sorts: { v: SortKey; label: string }[] = [
       <p class="text-5xl mb-3">💔</p>
       <h2 class="font-display text-xl font-semibold mb-1">No matches yet</h2>
       <p class="text-sm text-ink-soft mb-5">Head to the match deck — someone's waiting to meet you.</p>
-      <NuxtLink to="/" class="px-6 py-3 rounded-full bg-brand text-white font-semibold shadow-card hover:bg-brand-deep">Start swiping</NuxtLink>
+      <NuxtLink to="/" class="px-6 py-3 rounded-full bg-brand text-white font-semibold shadow-card hover:bg-brand-deep">Start matching</NuxtLink>
     </div>
 
     <!-- full-width list cards -->
