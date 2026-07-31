@@ -7,6 +7,10 @@ export default defineNuxtConfig({
     "nuxt-og-image",
     "@sentry/nuxt/module",
     "@nuxtjs/supabase",
+    /* Headless a11y primitives (dialogs, popovers, combobox). Unstyled on
+       purpose — they carry the focus/keyboard/ARIA behavior, our Tailwind
+       tokens carry the look. */
+    "reka-ui/nuxt",
   ],
 
   /* Anonymous browsing is the product: an at-risk dog's page has to be
