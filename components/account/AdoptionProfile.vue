@@ -3,7 +3,7 @@
    adoption application. Everything binds straight to the profile and
    auto-persists; sections are native <details> for accessibility. */
 
-import type { FosterDuration, FosterMedical } from "~/types";
+import type { FosterDuration } from "~/types";
 
 const { profile } = useStore();
 const db = useDb();
@@ -49,21 +49,11 @@ const sectionDone = (labels: string[]) =>
 /* ---------- ui helpers ---------- */
 const inputCls = "w-full rounded-xl border border-line bg-paper px-3 py-2.5 text-sm font-medium focus:outline-none focus:border-brand focus:ring-[3px] focus:ring-brand/25";
 const labelCls = "block text-xs font-semibold uppercase tracking-wide text-ink-soft mb-1";
-const chip = (active: boolean) =>
-  `px-4 py-2 rounded-full text-sm font-semibold border transition-colors ${
-    active ? "bg-brand text-white border-brand" : "bg-card border-line text-ink-soft hover:border-ink-faint"
-  }`;
-const seg = (active: boolean) =>
-  `flex-1 py-2.5 rounded-xl text-sm font-semibold border transition-colors ${
-    active ? "bg-brand text-white border-brand" : "bg-card border-line text-ink-soft hover:border-ink-faint"
-  }`;
-
 /* ---------- what this household is open to ---------- */
 const openTo = computed(() => a.value.openTo);
 
-/* Literal types rather than an annotation — these are the FosterDuration and
-   FosterMedical unions, and inferring them keeps the two in step without a
-   type-only import. */
+/* `as const` so the v values infer as the FosterDuration / FosterMedical
+   union members rather than plain strings. */
 const DURATIONS = [
   { v: "days", label: "A few days" },
   { v: "2-4-weeks", label: "2–4 weeks" },
@@ -150,37 +140,28 @@ const DWELLINGS = [
 
         <div>
           <span :class="labelCls">Longest you could commit</span>
-          <div class="grid grid-cols-2 gap-2">
-            <button
-              v-for="d in DURATIONS"
-              :key="d.v"
-              :class="seg(openTo.duration === d.v)"
-              :aria-pressed="openTo.duration === d.v"
-              @click="openTo.duration = d.v"
-            >{{ d.label }}</button>
-          </div>
+          <AppSegmented
+            :model-value="openTo.duration"
+            :options="DURATIONS.map((d) => ({ value: d.v, label: d.label }))"
+            two-col
+            @update:model-value="openTo.duration = $event as FosterDuration"
+          />
           <p class="text-[11px] text-ink-faint mt-1">A few days is genuinely useful — a weekend covers the gap to a transport run.</p>
         </div>
 
         <div>
           <span :class="labelCls">Medication you're willing to give</span>
           <div class="flex flex-wrap gap-2">
-            <button
-              v-for="m in MEDICAL"
-              :key="m.v"
-              :class="chip(openTo.medical === m.v)"
-              :aria-pressed="openTo.medical === m.v"
-              @click="openTo.medical = m.v"
-            >{{ m.label }}</button>
+            <AppChip v-for="m in MEDICAL" :key="m.v" :active="openTo.medical === m.v" @click="openTo.medical = m.v">{{ m.label }}</AppChip>
           </div>
           <p v-if="openTo.medical" class="text-[11px] text-ink-faint mt-1.5">
             {{ MEDICAL.find((m) => m.v === openTo.medical)?.hint }}
           </p>
         </div>
 
-        <button :class="chip(openTo.separateSpace)" :aria-pressed="openTo.separateSpace" @click="openTo.separateSpace = !openTo.separateSpace">
+        <AppChip :active="openTo.separateSpace" @click="openTo.separateSpace = !openTo.separateSpace">
           🚪 I have a room that closes
-        </button>
+        </AppChip>
         <p class="text-[11px] text-ink-faint">
           Needed for a contagious-but-treatable animal, and for any dog that can't meet your pets on day one.
         </p>
@@ -199,7 +180,7 @@ const DWELLINGS = [
           <span class="flex items-center gap-2.5 font-semibold"><span aria-hidden="true">👪</span> Household</span>
           <span class="flex items-center gap-2">
             <span v-if="sectionDone(['Primary caregiver'])" class="text-safe text-xs font-bold">✓</span>
-            <svg viewBox="0 0 24 24" class="w-4 h-4 text-brand transition-transform group-open:rotate-180" fill="none" stroke="currentColor" stroke-width="2.6" stroke-linecap="round" stroke-linejoin="round"><path d="m6 9 6 6 6-6"/></svg>
+            <AppIcon name="chevron-down" class="w-4 h-4 text-brand transition-transform group-open:rotate-180" />
           </span>
         </summary>
         <div class="pb-4 space-y-3">
@@ -230,7 +211,7 @@ const DWELLINGS = [
           <span class="flex items-center gap-2.5 font-semibold"><span aria-hidden="true">🏡</span> Home & housing</span>
           <span class="flex items-center gap-2">
             <span v-if="sectionDone(['Dwelling type', 'Rent or own', 'Landlord contact', 'Pets allowed', 'Fenced yard', 'Where the dog stays when alone'])" class="text-safe text-xs font-bold">✓</span>
-            <svg viewBox="0 0 24 24" class="w-4 h-4 text-brand transition-transform group-open:rotate-180" fill="none" stroke="currentColor" stroke-width="2.6" stroke-linecap="round" stroke-linejoin="round"><path d="m6 9 6 6 6-6"/></svg>
+            <AppIcon name="chevron-down" class="w-4 h-4 text-brand transition-transform group-open:rotate-180" />
           </span>
         </summary>
         <div class="pb-4 space-y-3.5">
@@ -240,11 +221,7 @@ const DWELLINGS = [
           </div>
           <div>
             <span :class="labelCls">Do you rent or own?</span>
-            <div class="flex gap-2">
-              <button :class="seg(a.housing.ownership === 'own')" @click="a.housing.ownership = 'own'">Own</button>
-              <button :class="seg(a.housing.ownership === 'rent')" @click="a.housing.ownership = 'rent'">Rent</button>
-              <button :class="seg(a.housing.ownership === 'family')" @click="a.housing.ownership = 'family'">With family</button>
-            </div>
+            <AppSegmented v-model="a.housing.ownership" :options="[{ value: 'own', label: 'Own' }, { value: 'rent', label: 'Rent' }, { value: 'family', label: 'With family' }]" />
           </div>
           <template v-if="a.housing.ownership === 'rent' || a.housing.ownership === 'family'">
             <div class="grid grid-cols-1 sm:grid-cols-2 gap-3">
@@ -259,11 +236,7 @@ const DWELLINGS = [
             </div>
             <div>
               <span :class="labelCls">Are pets allowed there?</span>
-              <div class="flex gap-2">
-                <button :class="seg(a.housing.petsAllowed === 'yes')" @click="a.housing.petsAllowed = 'yes'">Yes</button>
-                <button :class="seg(a.housing.petsAllowed === 'no')" @click="a.housing.petsAllowed = 'no'">No</button>
-                <button :class="seg(a.housing.petsAllowed === 'unsure')" @click="a.housing.petsAllowed = 'unsure'">Not sure</button>
-              </div>
+              <AppSegmented v-model="a.housing.petsAllowed" :options="[{ value: 'yes', label: 'Yes' }, { value: 'no', label: 'No' }, { value: 'unsure', label: 'Not sure' }]" />
               <p v-if="a.housing.petsAllowed === 'no' || a.housing.petsAllowed === 'unsure'" class="text-xs text-risk font-medium mt-1.5">
                 Rescues need written landlord consent (and any pet deposit paid) before an adoption is finalized.
               </p>
@@ -271,10 +244,7 @@ const DWELLINGS = [
           </template>
           <div>
             <span :class="labelCls">Securely fenced yard?</span>
-            <div class="flex gap-2">
-              <button :class="seg(a.housing.fencedYard === 'yes')" @click="a.housing.fencedYard = 'yes'">Yes</button>
-              <button :class="seg(a.housing.fencedYard === 'no')" @click="a.housing.fencedYard = 'no'">No</button>
-            </div>
+            <AppSegmented v-model="a.housing.fencedYard" :options="[{ value: 'yes', label: 'Yes' }, { value: 'no', label: 'No' }]" />
             <p class="text-[11px] text-ink-faint mt-1">Some dogs require secure fencing — this helps us match you honestly, not disqualify you.</p>
           </div>
           <div>
@@ -290,11 +260,7 @@ const DWELLINGS = [
           </div>
           <div>
             <span :class="labelCls">Traffic near your home</span>
-            <div class="flex gap-2">
-              <button :class="seg(a.housing.traffic === 'light')" @click="a.housing.traffic = 'light'">Light</button>
-              <button :class="seg(a.housing.traffic === 'moderate')" @click="a.housing.traffic = 'moderate'">Moderate</button>
-              <button :class="seg(a.housing.traffic === 'heavy')" @click="a.housing.traffic = 'heavy'">Heavy</button>
-            </div>
+            <AppSegmented v-model="a.housing.traffic" :options="[{ value: 'light', label: 'Light' }, { value: 'moderate', label: 'Moderate' }, { value: 'heavy', label: 'Heavy' }]" />
           </div>
         </div>
       </details>
@@ -305,7 +271,7 @@ const DWELLINGS = [
           <span class="flex items-center gap-2.5 font-semibold"><span aria-hidden="true">💼</span> Work & background</span>
           <span class="flex items-center gap-2">
             <span v-if="sectionDone(['Employment'])" class="text-safe text-xs font-bold">✓</span>
-            <svg viewBox="0 0 24 24" class="w-4 h-4 text-brand transition-transform group-open:rotate-180" fill="none" stroke="currentColor" stroke-width="2.6" stroke-linecap="round" stroke-linejoin="round"><path d="m6 9 6 6 6-6"/></svg>
+            <AppIcon name="chevron-down" class="w-4 h-4 text-brand transition-transform group-open:rotate-180" />
           </span>
         </summary>
         <div class="pb-4 space-y-3">
@@ -324,9 +290,9 @@ const DWELLINGS = [
             <input id="ap-years" v-model="a.employment.years" :class="inputCls" placeholder="e.g. 4 years" />
           </div>
           <div class="flex flex-wrap gap-2">
-            <button :class="chip(a.isStudent)" :aria-pressed="a.isStudent" @click="a.isStudent = !a.isStudent">🎓 Student</button>
-            <button :class="chip(a.isMilitary)" :aria-pressed="a.isMilitary" @click="a.isMilitary = !a.isMilitary">🎖️ Military</button>
-            <button :class="chip(a.firstTimeOwner)" :aria-pressed="a.firstTimeOwner" @click="a.firstTimeOwner = !a.firstTimeOwner">🌱 First-time owner</button>
+            <AppChip :active="a.isStudent" @click="a.isStudent = !a.isStudent">🎓 Student</AppChip>
+            <AppChip :active="a.isMilitary" @click="a.isMilitary = !a.isMilitary">🎖️ Military</AppChip>
+            <AppChip :active="a.firstTimeOwner" @click="a.firstTimeOwner = !a.firstTimeOwner">🌱 First-time owner</AppChip>
           </div>
           <p v-if="a.firstTimeOwner" class="text-[11px] text-ink-faint">
             First-timer? No problem — rescues will just ask for personal references instead of a vet history.
@@ -340,7 +306,7 @@ const DWELLINGS = [
           <span class="flex items-center gap-2.5 font-semibold"><span aria-hidden="true">🩺</span> Pet history & vet reference</span>
           <span class="flex items-center gap-2">
             <span v-if="sectionDone(['Current or past pets', 'Vet reference', 'Reference-check permission', 'Prepared for vet costs'])" class="text-safe text-xs font-bold">✓</span>
-            <svg viewBox="0 0 24 24" class="w-4 h-4 text-brand transition-transform group-open:rotate-180" fill="none" stroke="currentColor" stroke-width="2.6" stroke-linecap="round" stroke-linejoin="round"><path d="m6 9 6 6 6-6"/></svg>
+            <AppIcon name="chevron-down" class="w-4 h-4 text-brand transition-transform group-open:rotate-180" />
           </span>
         </summary>
         <div class="pb-4 space-y-3.5">
@@ -351,17 +317,11 @@ const DWELLINGS = [
           <div class="grid grid-cols-1 sm:grid-cols-2 gap-3">
             <div>
               <span :class="labelCls">Pets current on vaccinations?</span>
-              <div class="flex gap-2">
-                <button :class="seg(a.vet.petsVaccinated === 'yes')" @click="a.vet.petsVaccinated = 'yes'">Yes</button>
-                <button :class="seg(a.vet.petsVaccinated === 'no')" @click="a.vet.petsVaccinated = 'no'">No</button>
-              </div>
+              <AppSegmented v-model="a.vet.petsVaccinated" :options="[{ value: 'yes', label: 'Yes' }, { value: 'no', label: 'No' }]" />
             </div>
             <div>
               <span :class="labelCls">Pets spayed / neutered?</span>
-              <div class="flex gap-2">
-                <button :class="seg(a.vet.petsFixed === 'yes')" @click="a.vet.petsFixed = 'yes'">Yes</button>
-                <button :class="seg(a.vet.petsFixed === 'no')" @click="a.vet.petsFixed = 'no'">No</button>
-              </div>
+              <AppSegmented v-model="a.vet.petsFixed" :options="[{ value: 'yes', label: 'Yes' }, { value: 'no', label: 'No' }]" />
             </div>
           </div>
           <div class="grid grid-cols-1 sm:grid-cols-2 gap-3">
@@ -375,12 +335,12 @@ const DWELLINGS = [
             </div>
           </div>
           <div class="flex flex-wrap gap-2">
-            <button :class="chip(a.vet.allowReferenceCheck)" :aria-pressed="a.vet.allowReferenceCheck" @click="a.vet.allowReferenceCheck = !a.vet.allowReferenceCheck">
+            <AppChip :active="a.vet.allowReferenceCheck" @click="a.vet.allowReferenceCheck = !a.vet.allowReferenceCheck">
               ✓ Rescues may check my vet reference
-            </button>
-            <button :class="chip(a.vet.financiallyPrepared)" :aria-pressed="a.vet.financiallyPrepared" @click="a.vet.financiallyPrepared = !a.vet.financiallyPrepared">
+            </AppChip>
+            <AppChip :active="a.vet.financiallyPrepared" @click="a.vet.financiallyPrepared = !a.vet.financiallyPrepared">
               💛 Prepared for annual checkups & medical care
-            </button>
+            </AppChip>
           </div>
         </div>
       </details>

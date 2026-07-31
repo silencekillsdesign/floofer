@@ -46,12 +46,15 @@ function reset() {
   filters.value = defaultFilters();
 }
 
+const urgencies = [
+  { value: "all", label: "All dogs" }, { value: "high", label: "⚠ At-risk only" },
+] as const;
 const sizes = [
-  { v: "all", label: "Any" }, { v: "small", label: "Small" },
-  { v: "medium", label: "Medium" }, { v: "large", label: "Large" },
+  { value: "all", label: "Any" }, { value: "small", label: "Small" },
+  { value: "medium", label: "Medium" }, { value: "large", label: "Large" },
 ] as const;
 const sexes = [
-  { v: "all", label: "Any" }, { v: "M", label: "♂ Male" }, { v: "F", label: "♀ Female" },
+  { value: "all", label: "Any" }, { value: "M", label: "♂ Male" }, { value: "F", label: "♀ Female" },
 ] as const;
 const goodWithOpts = [
   { v: "kids", label: "🧒 Kids" }, { v: "dogs", label: "🐶 Dogs" }, { v: "cats", label: "🐱 Cats" },
@@ -83,14 +86,6 @@ function toggleRiskCategory(v: RiskCategory) {
     : [...filters.value.riskCategories, v];
 }
 
-const chip = (active: boolean) =>
-  `px-4 py-2 rounded-full text-sm font-semibold border transition-colors ${
-    active ? "bg-brand text-white border-brand" : "bg-card border-line text-ink-soft hover:border-ink-faint"
-  }`;
-const seg = (active: boolean) =>
-  `flex-1 py-2.5 rounded-xl text-sm font-semibold border transition-colors ${
-    active ? "bg-brand text-white border-brand" : "bg-card border-line text-ink-soft hover:border-ink-faint"
-  }`;
 const labelCls = "block text-xs font-semibold uppercase tracking-wide text-ink-soft mb-2";
 
 watch(
@@ -114,7 +109,7 @@ onUnmounted(() => {
         <div class="flex items-center gap-2">
           <button v-if="!isDefault" class="text-sm font-semibold text-brand hover:underline" @click="reset">Reset all</button>
           <button class="w-9 h-9 grid place-items-center rounded-full bg-paper-warm text-ink-soft hover:bg-line hover:text-ink" aria-label="Close filters" @click="emit('close')">
-            <svg viewBox="0 0 24 24" class="w-5 h-5" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round"><path d="M6 6l12 12M18 6L6 18"/></svg>
+            <AppIcon name="close" class="w-5 h-5" />
           </button>
         </div>
       </header>
@@ -124,10 +119,7 @@ onUnmounted(() => {
         <!-- Urgency -->
         <div>
           <span :class="labelCls">Urgency</span>
-          <div class="flex gap-2">
-            <button :class="seg(filters.urgency === 'all')" @click="filters.urgency = 'all'">All dogs</button>
-            <button :class="seg(filters.urgency === 'high')" @click="filters.urgency = 'high'">⚠ At-risk only</button>
-          </div>
+          <AppSegmented v-model="filters.urgency" :options="urgencies" />
           <p v-if="filters.urgency === 'high'" class="text-xs text-risk font-medium mt-1.5">Showing only dogs with a placement deadline.</p>
         </div>
 
@@ -140,24 +132,20 @@ onUnmounted(() => {
         <!-- Size -->
         <div>
           <span :class="labelCls">Size</span>
-          <div class="flex gap-2">
-            <button v-for="s in sizes" :key="s.v" :class="seg(filters.size === s.v)" @click="filters.size = s.v">{{ s.label }}</button>
-          </div>
+          <AppSegmented v-model="filters.size" :options="sizes" />
         </div>
 
         <!-- Sex -->
         <div>
           <span :class="labelCls">Sex</span>
-          <div class="flex gap-2">
-            <button v-for="s in sexes" :key="s.v" :class="seg(filters.sex === s.v)" @click="filters.sex = s.v">{{ s.label }}</button>
-          </div>
+          <AppSegmented v-model="filters.sex" :options="sexes" />
         </div>
 
         <!-- Good with -->
         <div>
           <span :class="labelCls">Good with</span>
           <div class="flex flex-wrap gap-2">
-            <button v-for="g in goodWithOpts" :key="g.v" :class="chip(filters.goodWith.includes(g.v))" :aria-pressed="filters.goodWith.includes(g.v)" @click="toggleGoodWith(g.v)">{{ g.label }}</button>
+            <AppChip v-for="g in goodWithOpts" :key="g.v" :active="filters.goodWith.includes(g.v)" @click="toggleGoodWith(g.v)">{{ g.label }}</AppChip>
           </div>
         </div>
 
@@ -165,7 +153,7 @@ onUnmounted(() => {
         <div>
           <span :class="labelCls">Must be</span>
           <div class="flex flex-wrap gap-2">
-            <button v-for="h in healthOpts" :key="h.key" :class="chip(filters[h.key])" :aria-pressed="filters[h.key]" @click="filters[h.key] = !filters[h.key]">{{ h.label }}</button>
+            <AppChip v-for="h in healthOpts" :key="h.key" :active="filters[h.key]" @click="filters[h.key] = !filters[h.key]">{{ h.label }}</AppChip>
           </div>
         </div>
 
@@ -173,7 +161,7 @@ onUnmounted(() => {
         <div>
           <span :class="labelCls">Listed by</span>
           <div class="flex flex-wrap gap-2">
-            <button v-for="s in sourceOpts" :key="s.v" :class="chip(filters.sources.includes(s.v))" :aria-pressed="filters.sources.includes(s.v)" @click="toggleSource(s.v)">{{ s.label }}</button>
+            <AppChip v-for="s in sourceOpts" :key="s.v" :active="filters.sources.includes(s.v)" @click="toggleSource(s.v)">{{ s.label }}</AppChip>
           </div>
         </div>
 
@@ -184,12 +172,11 @@ onUnmounted(() => {
             These pets wait longest. Pick one to seek them out.
           </p>
           <div class="flex flex-wrap gap-2">
-            <button
+            <AppChip
               v-for="r in riskOpts" :key="r.v"
-              :class="chip(filters.riskCategories.includes(r.v))"
-              :aria-pressed="filters.riskCategories.includes(r.v)"
+              :active="filters.riskCategories.includes(r.v)"
               @click="toggleRiskCategory(r.v)"
-            >{{ r.label }}</button>
+            >{{ r.label }}</AppChip>
           </div>
         </div>
 

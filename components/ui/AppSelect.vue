@@ -93,11 +93,7 @@ function onOpenAutoFocus(e: Event) {
           <span v-if="selected?.icon" aria-hidden="true">{{ selected.icon }}</span>
           <span class="truncate">{{ selected?.label ?? "Select…" }}</span>
         </span>
-        <svg
-          viewBox="0 0 24 24" class="w-4 h-4 shrink-0 text-brand transition-transform"
-          :class="open && 'rotate-180'"
-          fill="none" stroke="currentColor" stroke-width="2.6" stroke-linecap="round" stroke-linejoin="round"
-        ><path d="m6 9 6 6 6-6"/></svg>
+        <AppIcon name="chevron-down" class="w-4 h-4 shrink-0 text-brand transition-transform" :class="open && 'rotate-180'" />
       </button>
     </DialogTrigger>
 
@@ -114,7 +110,7 @@ function onOpenAutoFocus(e: Event) {
             class="w-9 h-9 grid place-items-center rounded-full bg-paper-warm text-ink-soft hover:bg-line hover:text-ink"
             aria-label="Close"
           >
-            <svg viewBox="0 0 24 24" class="w-5 h-5" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round"><path d="M6 6l12 12M18 6L6 18"/></svg>
+            <AppIcon name="close" class="w-5 h-5" />
           </DialogClose>
         </header>
 
@@ -127,11 +123,7 @@ function onOpenAutoFocus(e: Event) {
           <!-- predictive search -->
           <div v-if="showSearch" class="shrink-0 px-3 pt-3 pb-1.5">
             <div class="relative">
-              <svg
-                viewBox="0 0 24 24"
-                class="absolute left-3.5 top-1/2 -translate-y-1/2 w-[18px] h-[18px] text-ink-faint pointer-events-none"
-                fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round"
-              ><circle cx="11" cy="11" r="7"/><path d="m20 20-3.8-3.8"/></svg>
+              <AppIcon name="search" class="absolute left-3.5 top-1/2 -translate-y-1/2 w-[18px] h-[18px] text-ink-faint pointer-events-none" />
               <ListboxFilter
                 v-model="query"
                 as-child
@@ -153,7 +145,7 @@ function onOpenAutoFocus(e: Event) {
                 aria-label="Clear search"
                 @click="query = ''"
               >
-                <svg viewBox="0 0 24 24" class="w-3.5 h-3.5" fill="none" stroke="currentColor" stroke-width="2.6" stroke-linecap="round"><path d="M6 6l12 12M18 6L6 18"/></svg>
+                <AppIcon name="close" class="w-3.5 h-3.5" />
               </button>
             </div>
           </div>
@@ -186,10 +178,7 @@ function onOpenAutoFocus(e: Event) {
                 >{{ o.hint }}</span>
               </span>
               <ListboxItemIndicator as-child>
-                <svg
-                  viewBox="0 0 24 24" class="w-5 h-5 shrink-0 text-brand group-data-[highlighted]:text-white"
-                  fill="none" stroke="currentColor" stroke-width="3" stroke-linecap="round" stroke-linejoin="round"
-                ><path d="m5 13 4 4L19 7"/></svg>
+                <AppIcon name="check" class="w-5 h-5 shrink-0 text-brand group-data-[highlighted]:text-white" />
               </ListboxItemIndicator>
             </ListboxItem>
 

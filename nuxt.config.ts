@@ -13,6 +13,11 @@ export default defineNuxtConfig({
     "reka-ui/nuxt",
   ],
 
+  /* Components live in domain folders (ui/, match/, pet/, account/) purely
+     for the humans navigating the tree — the folder shouldn't leak into the
+     tag name, so <MatchDeck> stays <MatchDeck>, not <MatchMatchDeck>. */
+  components: [{ path: "~/components", pathPrefix: false }],
+
   /* Anonymous browsing is the product: an at-risk dog's page has to be
      shareable and indexable without a login wall. `redirect: false` disables
      the module's default global auth guard — individual org-only routes opt

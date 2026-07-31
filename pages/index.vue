@@ -129,29 +129,7 @@ function restorePassed() {
       <MatchDeck ref="deckRef" :deck="deck" :passed-count="passed.length" @decided="onDecided" @undo="rewind" @restore="restorePassed" />
 
       <div v-if="deck.length" class="absolute inset-x-2 bottom-4 z-20 flex items-center justify-center gap-3">
-        <button
-          class="w-14 h-14 shrink-0 grid place-items-center rounded-full bg-white text-navy shadow-pop hover:scale-110 transition-transform"
-          aria-label="Pass"
-          @click="deckRef?.fling('left')"
-        >
-          <svg viewBox="0 0 24 24" class="w-7 h-7" fill="none" stroke="currentColor" stroke-width="3.2" stroke-linecap="round"><path d="M6 6l12 12M18 6L6 18"/></svg>
-        </button>
-
-        <NuxtLink
-          :to="`/pet/${deck[0].id}`"
-          class="w-12 h-12 shrink-0 grid place-items-center rounded-full bg-brand text-white shadow-pop hover:scale-110 hover:bg-brand-deep transition-all"
-          :aria-label="`View ${deck[0].name}'s full bio`" title="Full bio"
-        >
-          <svg viewBox="0 0 24 24" class="w-6 h-6" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round"><circle cx="12" cy="12" r="9.25"/><path d="M12 11v5.5"/><circle cx="12" cy="7.75" r="1.3" fill="currentColor" stroke="none"/></svg>
-        </NuxtLink>
-
-        <button
-          class="w-14 h-14 shrink-0 grid place-items-center rounded-full bg-white text-pink shadow-pop hover:scale-110 transition-transform"
-          aria-label="Like"
-          @click="deckRef?.fling('right')"
-        >
-          <svg viewBox="0 0 24 24" class="w-7 h-7" fill="currentColor"><path d="M12 21s-7.5-4.9-10-9.5C.6 8 2.4 4.5 6 4.5c2.1 0 3.6 1.2 4.5 2.6.4.7 1.5.7 1.9 0 .9-1.4 2.4-2.6 4.5-2.6 3.6 0 5.4 3.5 4 7-2.5 4.6-9 9.5-9 9.5z"/></svg>
-        </button>
+        <DecideButtons :dog="deck[0]" lg @pass="deckRef?.fling('left')" @like="deckRef?.fling('right')" />
       </div>
     </div>
 
@@ -182,29 +160,7 @@ function restorePassed() {
 
     <!-- docked action bar: pass / bio / like -->
     <div v-if="deck.length" class="absolute inset-x-2 bottom-4 z-20 flex items-center justify-center gap-3">
-      <button
-        class="w-14 h-14 shrink-0 grid place-items-center rounded-full bg-white text-navy shadow-pop hover:scale-110 transition-transform"
-        aria-label="Pass"
-        @click="deckRef?.fling('left')"
-      >
-        <svg viewBox="0 0 24 24" class="w-7 h-7" fill="none" stroke="currentColor" stroke-width="3.2" stroke-linecap="round"><path d="M6 6l12 12M18 6L6 18"/></svg>
-      </button>
-
-      <NuxtLink
-        :to="`/pet/${deck[0].id}`"
-        class="w-12 h-12 shrink-0 grid place-items-center rounded-full bg-brand text-white shadow-pop hover:scale-110 hover:bg-brand-deep transition-all"
-        :aria-label="`View ${deck[0].name}'s full bio`" title="Full bio"
-      >
-        <svg viewBox="0 0 24 24" class="w-6 h-6" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round"><circle cx="12" cy="12" r="9.25"/><path d="M12 11v5.5"/><circle cx="12" cy="7.75" r="1.3" fill="currentColor" stroke="none"/></svg>
-      </NuxtLink>
-
-      <button
-        class="w-14 h-14 shrink-0 grid place-items-center rounded-full bg-white text-pink shadow-pop hover:scale-110 transition-transform"
-        aria-label="Like"
-        @click="deckRef?.fling('right')"
-      >
-        <svg viewBox="0 0 24 24" class="w-7 h-7" fill="currentColor"><path d="M12 21s-7.5-4.9-10-9.5C.6 8 2.4 4.5 6 4.5c2.1 0 3.6 1.2 4.5 2.6.4.7 1.5.7 1.9 0 .9-1.4 2.4-2.6 4.5-2.6 3.6 0 5.4 3.5 4 7-2.5 4.6-9 9.5-9 9.5z"/></svg>
-      </button>
+      <DecideButtons :dog="deck[0]" lg @pass="deckRef?.fling('left')" @like="deckRef?.fling('right')" />
     </div>
   </div>
   </ClientOnly>

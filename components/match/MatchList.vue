@@ -15,21 +15,7 @@ const { matchPct } = useStore();
 <template>
   <div>
     <!-- empty: same message as the other views, so this still feels like one place -->
-    <div v-if="!deck.length" class="rounded-3xl border-2 border-dashed border-line grid place-items-center bg-card/60 py-20">
-      <div class="text-center px-8">
-        <p class="text-5xl mb-3">🐾</p>
-        <h3 class="font-display text-xl font-semibold mb-1">That's everyone nearby</h3>
-        <p class="text-sm text-ink-soft mb-4">Widen your filters, or revisit the ones you passed on — hearts change.</p>
-        <div class="flex flex-col items-center gap-2">
-          <button class="px-5 py-2.5 rounded-full bg-brand text-white text-sm font-bold shadow-glow hover:bg-brand-deep" @click="emit('undo')">Rewind last card</button>
-          <button
-            v-if="passedCount"
-            class="px-5 py-2.5 rounded-full border border-line bg-card text-sm font-semibold text-ink-soft hover:border-ink-faint"
-            @click="emit('restore')"
-          >↺ Restore {{ passedCount }} skipped {{ passedCount === 1 ? "dog" : "dogs" }}</button>
-        </div>
-      </div>
-    </div>
+    <MatchEmptyState v-if="!deck.length" :passed-count="passedCount" @undo="emit('undo')" @restore="emit('restore')" />
 
     <TransitionGroup v-else name="mlist" tag="div" class="relative space-y-3">
       <article
@@ -64,20 +50,7 @@ const { matchPct } = useStore();
         <div class="flex items-center gap-3 pl-2 pr-4 shrink-0">
           <MatchRing :pct="matchPct(dog)" :size="44" />
           <div class="flex flex-col sm:flex-row items-center gap-2">
-            <button
-              class="w-10 h-10 grid place-items-center rounded-full bg-paper text-navy border border-line hover:scale-110 hover:border-ink-faint transition-all"
-              :aria-label="`Pass on ${dog.name}`"
-              @click="emit('pass', dog)"
-            >
-              <svg viewBox="0 0 24 24" class="w-[18px] h-[18px]" fill="none" stroke="currentColor" stroke-width="3.2" stroke-linecap="round"><path d="M6 6l12 12M18 6L6 18"/></svg>
-            </button>
-            <button
-              class="w-10 h-10 grid place-items-center rounded-full bg-paper text-pink border border-line hover:scale-110 hover:border-pink transition-all"
-              :aria-label="`Like ${dog.name}`"
-              @click="emit('like', dog)"
-            >
-              <svg viewBox="0 0 24 24" class="w-[18px] h-[18px]" fill="currentColor"><path d="M12 21s-7.5-4.9-10-9.5C.6 8 2.4 4.5 6 4.5c2.1 0 3.6 1.2 4.5 2.6.4.7 1.5.7 1.9 0 .9-1.4 2.4-2.6 4.5-2.6 3.6 0 5.4 3.5 4 7-2.5 4.6-9 9.5-9 9.5z"/></svg>
-            </button>
+            <DecideButtons :dog="dog" @pass="emit('pass', dog)" @like="emit('like', dog)" />
           </div>
         </div>
       </article>
