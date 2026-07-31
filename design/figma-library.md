@@ -200,13 +200,28 @@ Props: `Value` (TEXT), `Icon emoji` (TEXT, optional leading emoji).
   (760w: photo 144, info column with source/transport/tagline, 44px ring +
   decide pair). Photos are placeholder frames — product loads real images.
 
-## 7. Backlog
+## 7. Built in v1.2 (was backlog)
 
-- Deck card (swipe surface) — the last organism
-- `MatchEmptyState`, match toast, bottom nav
+- **`DeckCard`** — State: `Idle` / `Like` / `Pass` (340×560, Shadow/Deck).
+  Top gradient with Fredoka 26 name + risk chip, location and breed·sex
+  lines, photo-dot column, bottom gradient. Like state shows the pink LIKE
+  stamp; Pass shows the brand "Good Luck" stamp — honest about what a pass
+  means for an at-risk dog. Figma rotation is CCW-positive, so the ±12°
+  stamp tilts are sign-flipped from the CSS.
+- **`MatchEmptyState`** — dashed-line card (card/60 fill), 🐾, both CTAs
+  (brand glow rewind + outline restore).
+- **`MatchToast`** — navy pill with `Message` TEXT prop, brand "See matches"
+  chip, 70%-white Undo.
+- **`BottomNav`** — 375×64, real tab icon paths from `layouts/default.vue`,
+  active tab in brand, pink likes badge on Matches, and the Plus pill with
+  the brand→pink 135° gradient + Shadow/Glow.
+
+## 8. Backlog
+
 - Light-mode shadow variants if Figma adds mode-aware effect styles
+- Full screen assemblies (match page, pet bio) composed from the organisms
 
-## 8. Rebuild procedure (for a fresh file or future sync)
+## 9. Rebuild procedure (for a fresh file or future sync)
 
 1. Load the Figma MCP skills `figma-use` + `figma-generate-library`.
 2. Phase 1: create `Color` (Dark/Light) and `Layout` collections from §1–2 —
