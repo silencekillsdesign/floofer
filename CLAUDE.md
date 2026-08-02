@@ -18,14 +18,20 @@ npm test                             # vitest run — all tests
 npm run test:watch                   # vitest watch mode
 npx vitest run test/matching.spec.ts # single test file
 
-npm run seed:org                     # invite a shelter org (needs SUPABASE_SERVICE_KEY)
-npm run login:link -- --email x@y.z  # print a magic sign-in link (local dev only)
+# Both scripts below need SUPABASE_SERVICE_KEY in .env — local dev only.
+# seed:org requires --name/--type/--city and only invites when --invite is given:
+npm run seed:org -- --name "Org Name" --type municipal --city "Chicago, IL" --invite x@y.z
+# login:link redirects to port 4600 by default; pass --port to match your dev
+# server or the one-time link is burned against a port nothing listens on:
+npm run login:link -- --email x@y.z --port 3000
 ```
 
-There is no linter configured. Tests are pure-logic specs in `test/` running in
-a plain node environment (no Nuxt runtime) — `vitest.config.ts` only supplies
-the `~` alias and pins `TZ=America/Chicago`. The TZ pin is deliberate: the
-risk-deadline tests must mean the same thing on any machine. Don't remove it.
+There is no linter configured. Tests are pure-logic specs running in a plain
+node environment (no Nuxt runtime) — `vitest.config.ts` supplies the `~`/`@`
+aliases, restricts discovery to `test/**/*.spec.ts` (a colocated `foo.test.ts`
+elsewhere is silently never run), and pins `TZ=America/Chicago`. The TZ pin is
+deliberate: the risk-deadline tests must mean the same thing on any machine.
+Don't remove it.
 
 ## Core architectural rule: the app runs with no backend
 
@@ -36,8 +42,11 @@ Consequences:
 - **`useDb().configured` is the single gate to Supabase** (`composables/useDb.ts`).
   `nuxt.config.ts` falls back to a `localhost:54321` placeholder URL so the
   Supabase client constructs harmlessly; `configured` detects that placeholder.
-  Nothing may call Supabase without checking it first — `fetchDogs()` etc.
-  return `[]`/no-ops when unconfigured so callers fall back to demo data.
+  Nothing may call Supabase without checking it first. Read paths return empty
+  when unconfigured (`fetchDogs()` → `[]`, `fetchMyProfile()` → `null`) so
+  callers fall back to demo data — but mutations (`createDog`,
+  `submitFastPass`, `createPlayDate`, …) **throw**, so guard call sites on
+  `configured` (or catch) rather than assuming a silent no-op.
 - **Features degrade honestly.** If email isn't configured, `/api/notify`
   reports `delivered: false` and the UI says so — never show success for
   something that didn't happen. Follow this pattern for new integrations.
@@ -65,8 +74,11 @@ touching the schema (it can be regenerated with
 `useStore()` (`composables/useStore.ts`) is the single reactive store, built on
 Nuxt `useState` and hydrated once on the client:
 
-- Small/hot state (likes, passes, profile, filters) → `localStorage`
-  (`rescue-match-v1`), stripped of inline images.
+- Small/hot state (likes, passes, applications, adopted overrides, play
+  dates, profile, custom dogs, data source) → `localStorage`
+  (`rescue-match-v1`), stripped of inline images. Filters are deliberately
+  *not* persisted — `useFilters()` is a separate `useState` that resets on
+  reload.
 - Base64 photos (blow past the localStorage quota) → IndexedDB via `idb-keyval`,
   merged in a tick after first paint.
 - A deep watcher persists everything; `suspendPersist` pauses it during
@@ -114,8 +126,9 @@ not depend on where they're read:
 ## UI conventions
 
 - Components auto-import with **no path prefix** (`nuxt.config.ts`): folders
-  (`ui/`, `match/`, `pet/`, `account/`) are for humans only, so
+  (`ui/`, `match/`, `pet/`, `account/`, `OgImage/`) are for humans only, so
   `components/match/MatchDeck.vue` is `<MatchDeck>`, not `<MatchMatchDeck>`.
+  All folders share one flat global tag namespace — keep filenames unique.
 - Theming: CSS custom properties (RGB triplets) in `assets/css/main.css`,
   mapped to Tailwind colors in `tailwind.config.ts` via `rgb(var(--c-*))`.
   Dark is the default; light mode is a `.light` class on `<html>`, applied
