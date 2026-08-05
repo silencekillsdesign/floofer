@@ -21,6 +21,7 @@
     "idb-keyval": "^6.3.0",
     "nuxt": "^3.17.0",
     "nuxt-og-image": "^6.7.4",
+    "playwright-core": "^1.62.1",
     "vitest": "^4.1.10"
   },
   "dependencies": {
