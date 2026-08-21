@@ -12,7 +12,9 @@ import { DOG_BREEDS } from "~/data/dogs";
 
 export type MatchView = "gallery" | "list" | "deck";
 
-const props = defineProps<{ view: MatchView }>();
+/* view is optional — pages without a view switcher (the map) omit it and the
+   toggle group simply doesn't render. */
+const props = defineProps<{ view?: MatchView }>();
 const emit = defineEmits<{ "update:view": [v: MatchView] }>();
 
 const { dogs } = useStore();
@@ -234,7 +236,7 @@ const VIEWS: { v: MatchView; icon: "grid" | "list" | "card"; label: string; titl
     <div class="ml-auto flex items-center gap-1.5">
       <button v-if="!isDefault" class="text-sm font-semibold text-brand hover:underline whitespace-nowrap" @click="reset">Reset</button>
 
-      <div class="flex items-center gap-0.5 p-1 rounded-xl bg-paper-warm border border-line" role="group" aria-label="View">
+      <div v-if="view" class="flex items-center gap-0.5 p-1 rounded-xl bg-paper-warm border border-line" role="group" aria-label="View">
         <button
           v-for="vw in VIEWS"
           :key="vw.v"
