@@ -14,7 +14,7 @@ const footerCols = [
   ] },
   { title: "Legal", links: [
     { label: "Privacy", to: "/privacy" },
-    { label: "Terms", to: "/privacy" },
+    { label: "Terms", to: "/terms" },
   ] },
 ];
 

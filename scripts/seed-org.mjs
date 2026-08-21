@@ -39,9 +39,9 @@ function die(msg) {
 }
 
 const url = process.env.NUXT_PUBLIC_SUPABASE_URL;
-const serviceKey = process.env.SUPABASE_SERVICE_KEY;
+const serviceKey = process.env.NUXT_SUPABASE_SECRET_KEY ?? process.env.SUPABASE_SERVICE_KEY;
 if (!url || !serviceKey) {
-  die("Set NUXT_PUBLIC_SUPABASE_URL and SUPABASE_SERVICE_KEY in .env (see .env.example).");
+  die("Set NUXT_PUBLIC_SUPABASE_URL and NUXT_SUPABASE_SECRET_KEY in .env (see .env.example).");
 }
 
 const name = arg("name");

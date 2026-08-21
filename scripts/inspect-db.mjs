@@ -14,7 +14,7 @@ try {
 
 const db = createClient(
   process.env.NUXT_PUBLIC_SUPABASE_URL,
-  process.env.SUPABASE_SERVICE_KEY,
+  process.env.NUXT_SUPABASE_SECRET_KEY ?? process.env.SUPABASE_SERVICE_KEY,
   { auth: { persistSession: false } },
 );
 

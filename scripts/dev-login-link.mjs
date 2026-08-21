@@ -34,8 +34,8 @@ function die(msg) {
 }
 
 const url = process.env.NUXT_PUBLIC_SUPABASE_URL;
-const serviceKey = process.env.SUPABASE_SERVICE_KEY;
-if (!url || !serviceKey) die("Set NUXT_PUBLIC_SUPABASE_URL and SUPABASE_SERVICE_KEY in .env.");
+const serviceKey = process.env.NUXT_SUPABASE_SECRET_KEY ?? process.env.SUPABASE_SERVICE_KEY;
+if (!url || !serviceKey) die("Set NUXT_PUBLIC_SUPABASE_URL and NUXT_SUPABASE_SECRET_KEY in .env.");
 
 const email = arg("email");
 if (!email) die("Usage: npm run login:link -- --email you@example.org [--next /account] [--port 4600]");

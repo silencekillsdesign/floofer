@@ -23,3 +23,9 @@ jobs:
       # Catches what tests can't: broken imports, bad assets (e.g. the PWA
       # precache size limit), nitro/module config drift.
       - run: npm run build
+
+      # Smoke the actual production build — Playwright boots .output and
+      # walks the first-minute visitor paths.
+      - run: npx playwright install --with-deps chromium
+
+      - run: npx playwright test
