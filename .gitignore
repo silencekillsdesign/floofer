@@ -6,3 +6,6 @@ dist
 .DS_Store
 
 .output-verify
+.claude/
+test-results
+playwright-report

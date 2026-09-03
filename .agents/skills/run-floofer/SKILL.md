@@ -5,7 +5,7 @@ description: Build, run, and drive the Floofer app. Use when asked to start floo
 
 Floofer is a Nuxt 3 web app (see `CLAUDE.md`). Headless, you drive it by
 starting the dev server and piping commands to
-`.claude/skills/run-floofer/driver.mjs` — a small Playwright-Chromium REPL
+`.agents/skills/run-floofer/driver.mjs` — a small Playwright-Chromium REPL
 that navigates, clicks, and screenshots. All paths are relative to the
 repo root.
 
@@ -39,7 +39,7 @@ Drive it. This exact script exercises the core flow — dismiss the
 first-run wizard, like the top at-risk dog, verify it lands in Matches:
 
 ```bash
-node .claude/skills/run-floofer/driver.mjs <<'EOF'
+node .agents/skills/run-floofer/driver.mjs <<'EOF'
 nav http://localhost:3000
 eval localStorage.setItem('rescue-match-v1', JSON.stringify({profile:{onboardedAt:'2026-01-01T00:00:00.000Z'}}))
 nav http://localhost:3000
@@ -94,6 +94,22 @@ Useless headless — it just serves; use the driver above.
 
 ```bash
 npm test      # vitest run — 4 files, 85 tests, all pass in <1s
+```
+
+E2E smoke suite (`e2e/smoke.spec.ts`) runs against the **production build**
+— `playwright.config.ts` boots `.output/server/index.mjs` itself. In this
+container `@playwright/test` can't download its own browser, so point it at
+the pre-installed Chromium via a throwaway config override (verified: 4/4
+pass, ~1.2m):
+
+```bash
+npm run build
+cat > pw-local.config.mjs <<'EOF'
+import base from "./playwright.config.ts";
+export default { ...base, use: { ...base.use, launchOptions: { executablePath: "/opt/pw-browsers/chromium", args: ["--no-sandbox"] } } };
+EOF
+npx playwright test --config=pw-local.config.mjs
+rm pw-local.config.mjs
 ```
 
 ## Gotchas

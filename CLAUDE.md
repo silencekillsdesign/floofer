@@ -18,7 +18,8 @@ npm test                             # vitest run — all tests
 npm run test:watch                   # vitest watch mode
 npx vitest run test/matching.spec.ts # single test file
 
-# Both scripts below need SUPABASE_SERVICE_KEY in .env — local dev only.
+# Both scripts below need NUXT_SUPABASE_SECRET_KEY in .env — local dev only
+# (the old name SUPABASE_SERVICE_KEY still works but is deprecated).
 # seed:org requires --name/--type/--city and only invites when --invite is given:
 npm run seed:org -- --name "Org Name" --type municipal --city "Chicago, IL" --invite x@y.z
 # login:link redirects to port 4600 by default; pass --port to match your dev
@@ -26,12 +27,18 @@ npm run seed:org -- --name "Org Name" --type municipal --city "Chicago, IL" --in
 npm run login:link -- --email x@y.z --port 3000
 ```
 
-There is no linter configured. Tests are pure-logic specs running in a plain
-node environment (no Nuxt runtime) — `vitest.config.ts` supplies the `~`/`@`
-aliases, restricts discovery to `test/**/*.spec.ts` (a colocated `foo.test.ts`
-elsewhere is silently never run), and pins `TZ=America/Chicago`. The TZ pin is
-deliberate: the risk-deadline tests must mean the same thing on any machine.
-Don't remove it.
+There is no linter configured. Unit tests are pure-logic specs running in a
+plain node environment (no Nuxt runtime) — `vitest.config.ts` supplies the
+`~`/`@` aliases, restricts discovery to `test/**/*.spec.ts` (a colocated
+`foo.test.ts` elsewhere is silently never run), and pins `TZ=America/Chicago`.
+The TZ pin is deliberate: the risk-deadline tests must mean the same thing on
+any machine. Don't remove it.
+
+E2E: `e2e/smoke.spec.ts` is a Playwright smoke suite (smoke, not coverage —
+each test is one user-visible promise). `playwright.config.ts` boots the
+**production build** (`node .output/server/index.mjs`), so run `npm run build`
+before `npx playwright test`. CI (`.github/workflows/ci.yml`) runs vitest, the
+production build, and the smoke suite on every push and PR.
 
 ## Core architectural rule: the app runs with no backend
 
@@ -111,7 +118,14 @@ Every table has RLS; the pilot is invite-only (`org_invites` +
 `handle_new_user()` attach a new user to their org on first sign-in).
 Security posture: server-derived over client-supplied — e.g. `org_id` and
 `created_by` on listings come from the caller's own profile row, never from
-the form. `SUPABASE_SERVICE_KEY` is for local scripts only.
+the form. The service key (`NUXT_SUPABASE_SECRET_KEY`, deprecated name
+`SUPABASE_SERVICE_KEY`) is for local scripts only.
+
+## Repo conventions for agent tooling
+
+`.claude/` is machine-local and gitignored; skills that ship with the repo
+live in `.agents/skills/` (`better-icons`, `run-floofer`) so they're shared
+without committing personal Claude Code state.
 
 ## Dates and timezones
 
@@ -126,7 +140,8 @@ not depend on where they're read:
 ## UI conventions
 
 - Components auto-import with **no path prefix** (`nuxt.config.ts`): folders
-  (`ui/`, `match/`, `pet/`, `account/`, `OgImage/`) are for humans only, so
+  (`ui/`, `match/`, `pet/`, `account/`, `landing/`, `OgImage/`) are for
+  humans only, so
   `components/match/MatchDeck.vue` is `<MatchDeck>`, not `<MatchMatchDeck>`.
   All folders share one flat global tag namespace — keep filenames unique.
 - Theming: CSS custom properties (RGB triplets) in `assets/css/main.css`,

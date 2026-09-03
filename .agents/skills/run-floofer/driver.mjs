@@ -3,7 +3,7 @@
  * Agent tooling, not product code — commands come in on stdin, one per
  * line, so it works piped (heredoc) or interactively under tmux.
  *
- *   node .claude/skills/run-floofer/driver.mjs <<'EOF'
+ *   node .agents/skills/run-floofer/driver.mjs <<'EOF'
  *   nav http://localhost:3000
  *   wait text=Duke
  *   ss deck

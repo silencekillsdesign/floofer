@@ -5,7 +5,11 @@ const { dogs, matchPct } = useStore();
 const { theme } = useTheme();
 const router = useRouter();
 
-const showRiskOnly = ref(false);
+/* Same shared facet state as the match screen: FilterBar here on desktop,
+   the layout's full-screen FilterPanel on phones — two doors, one state. */
+const filters = useFilters();
+/* Seeded from ?q= so the landing page's search field lands on filtered pins. */
+const q = ref(String(useRoute().query.q ?? ""));
 const mapEl = ref<HTMLElement | null>(null);
 let map: any = null;
 let markerLayer: any = null;
@@ -16,9 +20,15 @@ const tileUrl = computed(() =>
   `https://{s}.basemaps.cartocdn.com/${theme.value === "light" ? "light_all" : "dark_all"}/{z}/{x}/{y}{r}.png`,
 );
 
-const visible = computed<Dog[]>(() =>
-  dogs.value.filter((d) => (showRiskOnly.value ? d.risk === "high" && !d.adopted : true)),
-);
+const visible = computed<Dog[]>(() => {
+  const needle = q.value.trim().toLowerCase();
+  return applyFilters(dogs.value, filters.value, matchPct).filter(
+    (d) =>
+      (!needle || `${d.name} ${d.breed} ${d.source.name}`.toLowerCase().includes(needle)) &&
+      // "at-risk only" means still savable — celebration pins sit that one out
+      !(filters.value.urgency === "high" && d.adopted),
+  );
+});
 const riskCount = computed(() => dogs.value.filter((d) => d.risk === "high" && !d.adopted).length);
 
 function markerHtml(d: Dog): string {
@@ -80,22 +90,35 @@ watch(tileUrl, (u) => tiles?.setUrl(u));
   <ClientOnly>
   <!-- full bleed: fills header → bottom nav -->
   <div class="flex flex-col w-full h-[calc(100dvh-3.5rem-4rem-env(safe-area-inset-bottom))] sm:h-auto sm:max-w-5xl sm:mx-auto sm:px-4 sm:pt-5 sm:pb-10">
+    <!-- header: no on-page search — ?q= deep links (landing hero) still
+         filter, surfaced as a clearable note in the subtitle -->
     <div class="flex items-center justify-between gap-3 px-4 py-2.5 sm:px-0 sm:mb-3">
-      <div>
-        <h1 class="font-display text-xl sm:text-2xl font-semibold leading-tight">Pets near you</h1>
-        <p class="text-xs sm:text-sm text-ink-soft">
+      <div class="min-w-0">
+        <h1 class="font-display text-xl sm:text-2xl font-semibold leading-tight whitespace-nowrap">Pets near you</h1>
+        <p class="text-xs sm:text-sm text-ink-soft truncate">
+          <template v-if="q.trim()">
+            {{ visible.length }} matching “{{ q.trim() }}”
+            <button class="font-semibold text-brand hover:underline" @click="q = ''">clear</button> ·
+          </template>
           {{ dogs.filter((d) => !d.adopted).length }} available ·
           <span class="text-risk font-semibold">{{ riskCount }} at risk</span>
         </p>
       </div>
+      <!-- md+ has the same toggle inside FilterBar -->
       <button
-        class="shrink-0 px-3.5 py-2 rounded-full text-xs sm:text-sm font-semibold border transition-colors"
-        :class="showRiskOnly ? 'bg-risk text-white border-risk' : 'bg-card border-line text-ink-soft hover:border-risk hover:text-risk'"
-        :aria-pressed="showRiskOnly"
-        @click="showRiskOnly = !showRiskOnly"
+        class="shrink-0 px-3.5 py-2 rounded-full text-xs sm:text-sm font-semibold border transition-colors md:hidden"
+        :class="filters.urgency === 'high' ? 'bg-risk text-white border-risk' : 'bg-card border-line text-ink-soft hover:border-risk hover:text-risk'"
+        :aria-pressed="filters.urgency === 'high'"
+        @click="filters.urgency = filters.urgency === 'high' ? 'all' : 'high'"
       >
         ⚠ At-risk only
       </button>
+    </div>
+
+    <!-- desktop facets: same bar, same shared state as the match screen.
+         Phones use the layout's full-screen FilterPanel (header sliders icon). -->
+    <div class="hidden md:block">
+      <FilterBar />
     </div>
 
     <div ref="mapEl" class="flex-1 w-full z-0 sm:flex-none sm:h-[560px] sm:rounded-3xl sm:shadow-pop sm:border sm:border-line" style="min-height: 320px" />
