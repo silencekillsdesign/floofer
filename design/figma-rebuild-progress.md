@@ -50,11 +50,23 @@ with CJ's existing marketing pages (design-system, components, Style Guide).
       SM|MD|LG. `DS / Marketing` page (2422:1176): Pill 2422:1190 (4
       colors) · Card 2422:1194 · UrgentChip 2422:1197 · NavLink 2422:1205 ·
       SearchPill 2422:1206 · FAQRow 2422:1221 (Closed/Open)
-- [ ] Marketing organisms: LandingHeader, LandingFooter, section
-      assemblies (hero, band, network grid, gallery, map preview, how,
-      stories, download, FAQ, closing) — needs FlooferLogo wordmark first
-- [ ] FlooferLogo wordmark component (ui/FlooferLogo.vue SVG) — serves
-      BOTH systems; build next, on DS / Icons or its own DS / Brand page
+### Organisms + brand + cover (2026-09-21, continued)
+- [x] `DS / Brand` FlooferLogo 2423:24 (Color=Brand/Yellow/White, exact
+      wordmark SVG incl. tail group; wag animation noted in description)
+- [x] `DS / Cards` page: GalleryCard 2424:3 · ListRow 2425:8 ·
+      DeckCard 2425:88 (Idle/Like/Pass with ±12° stamps) ·
+      MatchEmptyState 2427:12 · MatchToast 2427:21 · BottomNav 2427:26
+      (real tab icon paths, pink badge, gradient Plus pill)
+- [x] PentagonChart 2428:21 (DS / Components; generated geometry,
+      pet+user overlays, legend)
+- [x] Marketing organisms: LandingHeader 2428:54 · LandingFooter 2428:79 ·
+      Section / Hero 2428:116 (72px 3-line Fredoka H1, yellow NEEDS,
+      pills, glow + pup placeholder)
+- [x] `DS / Cover` 2428:130 — first page, portfolio face
+- [ ] Remaining marketing sections: band+search, network grid, gallery,
+      map preview, how, stories, download, FAQ stack, closing CTA
+- [ ] AppHeader (layouts/default.vue top bar), FilterBar organism,
+      FilterPanel sheet
 - [ ] Screen assemblies (match page, pet bio) — spec §8 backlog
 
 ## Conventions
