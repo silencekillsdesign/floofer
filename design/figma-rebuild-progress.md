@@ -63,10 +63,24 @@ with CJ's existing marketing pages (design-system, components, Style Guide).
       Section / Hero 2428:116 (72px 3-line Fredoka H1, yellow NEEDS,
       pills, glow + pup placeholder)
 - [x] `DS / Cover` 2428:130 — first page, portfolio face
-- [ ] Remaining marketing sections: band+search, network grid, gallery,
-      map preview, how, stories, download, FAQ stack, closing CTA
-- [ ] AppHeader (layouts/default.vue top bar), FilterBar organism,
-      FilterPanel sheet
+### Full-page mock + app chrome (2026-09-21, continued)
+- [x] `Landing / Full Page` 2429:32 (DS / Marketing) — complete 4,918px
+      mock: Header, Hero, Band+Search, Network (4 role cards), Gallery
+      (dark, urgent chip), How (3 steps w/ icon instances), Stories,
+      FAQ stack (1 open + 3 closed instances), Closing, Footer
+- [x] AppHeader 2431:17 (DS / Cards) — paper/85 bar, brand logo instance,
+      tab pills + badge, gradient Plus, filter/theme buttons
+- [x] FilterBar 2431:48 — breed input + 5 FacetTrigger instances +
+      at-risk + view toggle. NOTE: fixed FacetTrigger variants stuck at
+      100h (counter FIXED — the hug-sizing bug again) and swapped Active
+      fill from paint-opacity to the brand-soft token (paint-level opacity
+      on bound variables misrenders inside instances; brand-soft is the
+      designed token for that role anyway)
+- [x] `Screen / Match` 2431:94 — full desktop assembly from instances
+      (AppHeader + title + FilterBar + 4× GalleryCard)
+- [ ] FilterPanel sheet, MessageSheet, PlayDateSheet, FastPassCard,
+      PhotoUploader, DogPhoto, account organisms
+- [ ] Screen assemblies: pet bio, map
 - [ ] Screen assemblies (match page, pet bio) — spec §8 backlog
 
 ## Conventions
