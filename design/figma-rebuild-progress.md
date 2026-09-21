@@ -40,9 +40,21 @@ with CJ's existing marketing pages (design-system, components, Style Guide).
       FilterBar organism, FilterPanel sheet, MessageSheet, PlayDateSheet,
       FastPassCard, PhotoUploader, DogPhoto, account organisms
       (AdoptionProfile, ChildrenList, PetsList, AdopterOnboarding steps)
-- [ ] Landing/marketing system (landing.css: pills, cards, bg treatments,
-      Fredoka/Lexend) — decide with CJ whether it joins this file's existing
-      marketing pages or stays code-only
+- [x] Marketing foundations + atoms (2026-09-21, CJ approved building it
+      for future unification). `Marketing` collection 16 vars
+      (VariableCollectionId:2422:2, raw hexes from landing.css), 9
+      Marketing/* text styles (Fredoka display + Lexend body — both
+      families use no-space style names), BG/Hero|Sun|Tint|Dark paint
+      styles (gradient matrices screenshot-validated; Sun's halftone dot
+      grid is CSS-only, noted in style description), Marketing/Shadow
+      SM|MD|LG. `DS / Marketing` page (2422:1176): Pill 2422:1190 (4
+      colors) · Card 2422:1194 · UrgentChip 2422:1197 · NavLink 2422:1205 ·
+      SearchPill 2422:1206 · FAQRow 2422:1221 (Closed/Open)
+- [ ] Marketing organisms: LandingHeader, LandingFooter, section
+      assemblies (hero, band, network grid, gallery, map preview, how,
+      stories, download, FAQ, closing) — needs FlooferLogo wordmark first
+- [ ] FlooferLogo wordmark component (ui/FlooferLogo.vue SVG) — serves
+      BOTH systems; build next, on DS / Icons or its own DS / Brand page
 - [ ] Screen assemblies (match page, pet bio) — spec §8 backlog
 
 ## Conventions
