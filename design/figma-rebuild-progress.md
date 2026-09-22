@@ -78,9 +78,19 @@ with CJ's existing marketing pages (design-system, components, Style Guide).
       designed token for that role anyway)
 - [x] `Screen / Match` 2431:94 — full desktop assembly from instances
       (AppHeader + title + FilterBar + 4× GalleryCard)
-- [ ] FilterPanel sheet, MessageSheet, PlayDateSheet, FastPassCard,
-      PhotoUploader, DogPhoto, account organisms
-- [ ] Screen assemblies: pet bio, map
+### Screens + sheets (2026-09-21, continued)
+- [x] `Screen / Pet Bio` 2432:203 (DS / Cards) — hero w/ days-left
+      countdown badge, tagline chip, photo dots, identity + match chip +
+      fact chips, PentagonChart instance, LG decide pair
+- [x] `Screen / Map` 2433:239 — dark tiles, streets/lake, glowing risk
+      pins, legend, BottomNav instance
+- [x] `DS / Sheets` page: PlayDateSheet 2434:8 (slot grid) ·
+      MessageSheet 2435:8 (rescue chip, attached profile, reply-to note) ·
+      FilterPanel 2436:9 (composed from Segment/Chip/CheckRow instances) ·
+      FastPassCard 2436:50 (status chip, progress, readiness checklist)
+- [ ] Long tail (only if wanted): PhotoUploader, DogPhoto, DogStateEditor,
+      AdopterOnboarding wizard steps, AdoptionProfile, ChildrenList,
+      PetsList — utility/admin surfaces, lower portfolio value
 - [ ] Screen assemblies (match page, pet bio) — spec §8 backlog
 
 ## Conventions
