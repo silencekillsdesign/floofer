@@ -75,7 +75,7 @@ onMounted(async () => {
   L = await import("leaflet");
   map = L.map(mapEl.value!, { zoomControl: true }).setView([41.8781, -87.6298], 10);
   tiles = L.tileLayer(tileUrl.value, {
-    attribution: '&copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a> &copy; <a href="https://carto.com/">CARTO</a>',
+    attribution: '&copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a> &copy; Esri',
     maxZoom: 19,
   }).addTo(map);
   markerLayer = L.layerGroup().addTo(map);
