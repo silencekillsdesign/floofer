@@ -55,6 +55,21 @@ const NEVER = [
   "Payments for adopting or fostering",
 ];
 
+/* Time is the donation most shelters are shortest on — and the one this page
+   would otherwise imply doesn't count. Listed after "what it never buys" so
+   the takeaway isn't "pay or you're not helping". */
+const OTHER_WAYS = [
+  { icon: "✍️", label: "Write adoption bios" },
+  { icon: "📋", label: "Review applications" },
+  { icon: "🎪", label: "Help at adoption events" },
+  { icon: "📦", label: "Organize donation drives" },
+  { icon: "📣", label: "Manage social media or graphics" },
+  { icon: "🗓️", label: "Admin, scheduling, or web updates" },
+  { icon: "🐕", label: "Walk dogs or socialize cats" },
+  { icon: "💸", label: "Fundraise or write grants" },
+  { icon: "🚗", label: "Transportation" },
+];
+
 useSeoMeta({
   title: "Floofer Plus — fund the shelters, not a queue skip",
   description:
@@ -176,6 +191,29 @@ useSeoMeta({
           <li v-for="n in NEVER" :key="n" class="flex items-start gap-2.5 text-sm">
             <span class="text-risk font-bold mt-px shrink-0" aria-hidden="true">✕</span>
             <span class="text-ink-soft">{{ n }}</span>
+          </li>
+        </ul>
+      </div>
+    </section>
+
+    <!-- other ways to help: time, not money -->
+    <section class="px-5 py-7 bg-paper-warm border-t border-line">
+      <div class="mx-auto max-w-md">
+        <p class="text-[11px] font-extrabold uppercase tracking-widest text-safe mb-2">No money required</p>
+        <h2 class="font-display text-xl font-bold mb-1.5">Other ways to help.</h2>
+        <p class="text-sm text-ink-soft leading-relaxed mb-4">
+          Shelters run on volunteered time at least as much as money. Every one of these
+          moves an animal closer to a home — mention what you'd take on when you message
+          a shelter, and they'll put you to work.
+        </p>
+        <ul class="grid grid-cols-2 gap-2">
+          <li
+            v-for="w in OTHER_WAYS"
+            :key="w.label"
+            class="flex items-center gap-2 px-3 py-2.5 rounded-xl bg-card border border-line"
+          >
+            <span class="shrink-0" aria-hidden="true">{{ w.icon }}</span>
+            <span class="text-[13px] font-semibold leading-snug">{{ w.label }}</span>
           </li>
         </ul>
       </div>

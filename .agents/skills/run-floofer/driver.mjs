@@ -78,6 +78,13 @@ async function run(line) {
       ok(`ss ${path}`);
       break;
     }
+    case "ssfull": { // whole page, not just the viewport — long pages scroll
+      const name = arg || `shot-${++shot}`;
+      const path = `${SHOTS}/${name}.png`;
+      await page.screenshot({ path, fullPage: true });
+      ok(`ssfull ${path}`);
+      break;
+    }
     case "eval":
       console.log(JSON.stringify(await page.evaluate(arg)));
       break;
